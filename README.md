@@ -49,3 +49,12 @@ The minimum tools needed are:
 - Deepseek (LLM)
 - Perplexity / Talily / Wikipedia / Arxiv
 
+# Personal notes
+
+Web:
+créer les fonctions syncrones pour crawler les pages web avec smolagents avec les outils que je veux
+vérifier ensuite que je puisse :
+    - récupérer des pdfss de arxviv
+    - récupérer des pdfs de n'importe ou
+    - commencer par faire les outils pour tester sur perplexity tavily ect...  crawl4ai nous donnera du markdown, donc on veut pouvoir télécharger des papiers et des pdfs.
+    - avoir un outil général de gestion des markdowns
