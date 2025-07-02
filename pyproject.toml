@@ -7,7 +7,21 @@ authors = [
     { name = "Charles Azam", email = "azamcharles0@gmail.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "crawl4ai>=0.6.0",
+    "smolagents>=1.19.0",
+    "openai",
+    "datasets",
+    "transformers",
+    "litellm",
+    "langchain",
+    "fasttext-wheel",
+    "wikipedia-api",
+    "pillow",
+    "gradio",
+    "open-deep-research",
+    "python-dotenv>=1.1.1",
+]
 
 [project.scripts]
 deepengineer = "deepengineer:main"
@@ -15,3 +29,6 @@ deepengineer = "deepengineer:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.uv.sources]
+open-deep-research = { git = "https://github.com/langchain-ai/open_deep_research" }
