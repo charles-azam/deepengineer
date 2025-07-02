@@ -1,0 +1,17 @@
+[project]
+name = "deepengineer"
+version = "0.1.0"
+description = "DeepEngineer is a deepsearch project focused on engineering"
+readme = "README.md"
+authors = [
+    { name = "Charles Azam", email = "azamcharles0@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+deepengineer = "deepengineer:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
