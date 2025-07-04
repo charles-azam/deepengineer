@@ -10,17 +10,17 @@ from deepengineer.webcrawler.async_search import (
 
 
 @pytest.mark.expensive
-def test_tavily_search_async():
+@pytest.mark.asyncio
+async def test_tavily_search_async():
     
     usage_before = get_tavily_usage()
     print(usage_before)
     
 
-    response = asyncio.run(
-        tavily_search_async(
-            search_query="Would it be possible to make a thermal reactor with graphite and lead?",
-        )
+    response = await tavily_search_async(
+        search_query="Would it be possible to make a thermal reactor with graphite and lead?",
     )
+    
     print(response.answer)
     assert response is not None
     assert isinstance(response, SearchResponse)
@@ -41,15 +41,14 @@ def test_tavily_search_async():
     assert usage_after == usage_before + 1
 
 @pytest.mark.expensive
-def test_linkup_search_async():
+@pytest.mark.asyncio
+async def test_linkup_search_async():
     
     balance_before = get_linkup_balance()
     print(balance_before)
 
-    response = asyncio.run(
-        async_linkup_search(
-            search_query="Would it be possible to make a thermal reactor with graphite and lead?",
-        )
+    response = await async_linkup_search(
+        search_query="Would it be possible to make a thermal reactor with graphite and lead?",
     )
     print(response.answer)
     assert response is not None

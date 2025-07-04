@@ -3,6 +3,7 @@ import asyncio
 import requests
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
+from enum import Enum
 
 from linkup import LinkupClient, LinkupSourcedAnswer
 from tavily import AsyncTavilyClient
@@ -23,6 +24,11 @@ class SearchResponse(BaseModel):
     answer: str | None = Field(None, description="Direct answer from the search API if available")
     search_results: list[SearchResult] = Field(default_factory=list, description="List of search results")
     
+class ScientificDomains(str, Enum):
+    wikipedia = "wikipedia.org"
+    arxiv = "arxiv.org"
+    pubmed = "pubmed.ncbi.nlm.nih.gov"
+    sciencedirect = "sciencedirect.com"
 
 def get_tavily_usage():
     url = "https://api.tavily.com/usage"
@@ -39,7 +45,8 @@ async def tavily_search_async(
     include_answer: Literal["basic", "advanced"] | None = "advanced",
     include_raw_content: Literal["text", "markdown"] | None = "markdown",
     include_images: bool = False,
-    search_depth: Literal['basic', 'advanced'] | None = "basic"
+    search_depth: Literal['basic', 'advanced'] | None = "basic",
+    include_domains: list[ScientificDomains] = None,
 ) -> SearchResponse:
     """
     Performs concurrent web searches with the Tavily API
@@ -52,7 +59,8 @@ async def tavily_search_async(
         include_answer=include_answer,
         include_raw_content=include_raw_content,
         max_results=max_results,
-        include_images=include_images
+        include_images=include_images,
+        include_domains=include_domains,
     )
     
     search_results = [
@@ -90,6 +98,7 @@ async def async_linkup_search(
     depth: Literal["standard", "deep"] = "standard",
     output_type: Literal['searchResults', 'sourcedAnswer', 'structured'] = "sourcedAnswer",
     include_images: bool = False,
+    include_domains: list[ScientificDomains] = None,
 ) -> SearchResponse:
     """
     Performs concurrent web searches using the Linkup API.
@@ -100,10 +109,9 @@ async def async_linkup_search(
         query=search_query,
         depth=depth,
         output_type=output_type,
-        include_images=include_images
+        include_images=include_images,
+        include_domains=include_domains,
     )
-    
-
     
     search_results = [
         SearchResult(
@@ -126,28 +134,28 @@ async def async_linkup_search(
 
 
 
-class ArxivSearchParams(BaseModel):
-    """Parameters for arXiv search."""
-    load_max_docs: int = Field(default=5, ge=1, le=20, description="Maximum number of documents to return per query")
-    get_full_documents: bool = Field(default=True, description="Whether to fetch full text of documents")
-    load_all_available_meta: bool = Field(default=True, description="Whether to load all available metadata")
-
-
-class PubMedSearchParams(BaseModel):
-    """Parameters for PubMed search."""
-    top_k_results: int = Field(default=5, ge=1, le=20, description="Maximum number of documents to return per query")
-    email: Optional[str] = Field(None, description="Email address for PubMed API. Required by NCBI.")
-    api_key: Optional[str] = Field(None, description="API key for PubMed API for higher rate limits")
-    doc_content_chars_max: int = Field(default=4000, ge=100, le=10000, description="Maximum characters for document content")
-
 
 async def arxiv_search_async(
     search_query: str,
 ) -> SearchResponse:
-    raise NotImplementedError("Arxiv search is not implemented yet")
+    response = await async_linkup_search(search_query, include_domains=[ScientificDomains.arxiv])
+    return response
 
 
 async def pubmed_search_async(
-    query: str,
+    search_query: str,
 ) -> SearchResponse:
-    raise NotImplementedError("PubMed search is not implemented yet")
+    response = await async_linkup_search(search_query, include_domains=[ScientificDomains.pubmed])
+    return response
+
+async def sciencedirect_search_async(
+    search_query: str,
+) -> SearchResponse:
+    response = await async_linkup_search(search_query, include_domains=[ScientificDomains.sciencedirect])
+    return response
+
+async def scientific_search_async(
+    search_query: str,
+) -> SearchResponse:
+    response = await async_linkup_search(search_query, include_domains=[ScientificDomains.wikipedia, ScientificDomains.arxiv, ScientificDomains.pubmed, ScientificDomains.sciencedirect])
+    return response
