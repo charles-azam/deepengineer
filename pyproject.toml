@@ -21,6 +21,10 @@ dependencies = [
     "gradio",
     "open-deep-research",
     "python-dotenv>=1.1.1",
+    "httpx",
+    "pypdf",
+    "pytest-asyncio>=1.0.0",
+    "mistralai>=1.9.1",
 ]
 
 [project.scripts]
