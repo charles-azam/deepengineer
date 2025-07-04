@@ -49,12 +49,30 @@ The minimum tools needed are:
 - Deepseek (LLM)
 - Perplexity / Talily / Wikipedia / Arxiv
 
-# Personal notes
+# Objectives:
 
-Web:
-créer les fonctions syncrones pour crawler les pages web avec smolagents avec les outils que je veux
-vérifier ensuite que je puisse :
-    - récupérer des pdfss de arxviv
-    - récupérer des pdfs de n'importe ou
-    - commencer par faire les outils pour tester sur perplexity tavily ect...  crawl4ai nous donnera du markdown, donc on veut pouvoir télécharger des papiers et des pdfs.
-    - avoir un outil général de gestion des markdowns
+Webcrawler:
+- [x] functions for linkup and tavily
+- [x] function for wikipedia
+- [x] function for arxiv
+- [x] function for pubmed
+- [x] function for sciencedirect
+- [x] function for pdfs
+- [x] function for markdown
+
+Markdown reader:
+- [ ] Agent that can work with markdown sources
+
+Agents:
+    - [ ] Webcrawler agent
+    - [ ] Markdown reader agent
+    - [ ] Drawing agent
+    - [ ] Scientific coding agent
+    - [ ] Deepsearch Agent 
+
+## Todo:
+
+- [x] Having the minimal web tools working
+- [ ] Running the deepsearch agent from smolagents using my web tools
+- [ ] Deploying the deepsearch agent on a server
+- [ ] Adding more tools
