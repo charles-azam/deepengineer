@@ -86,3 +86,23 @@ Agents:
 - Google Cloud run for hosting
 - OVH to buy the domain name
 - GCR to store the smolagents agents
+
+## prompt
+
+I want to create and deploy an engineering deepsearch web application. So engineer would ask a question, maybe providing some additional context with pdfs files and the deepsearch would answer the question. The answer will be given in markdown so there must be a way to display it in streaming. Also, the user must be given hindsight of what the agent is doing while he is working.
+
+The front end must be minimalistic and remind the user that he is an engineer.
+
+I want to use supabase for the authentification, stripe for payment and GCP for the rest.
+
+The front must be react and the back fastAPI.
+
+Help build that application and guide me through.
+
+
+
+To do this I would need authentification with supabase. The users need to autoticate first, I would manually grant them the ressources and then they would have a limited number of credits that they can extend by paying.
+
+
+
+I want to deploy this application. Being able to manage my costs are absolutely critical. I want to avoid any budget overload, I would rather my app to crash (this is just a demonstrator). For the AI backend, I would be using smolagents along with FastAPI, but I was thinking hosting the smolagents part on another server so that the backend of my application would connect to this server. This server would be a ec2 or something. For the backend of the website, you could really choose anything, but if you choose python take fastAPI, if not python choose a typescript backend. 
