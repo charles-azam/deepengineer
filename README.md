@@ -74,5 +74,4 @@ Agents:
 
 - [x] Having the minimal web tools working
 - [ ] Running the deepsearch agent from smolagents using my web tools
-- [ ] Deploying the deepsearch agent on a server
 - [ ] Adding more tools
