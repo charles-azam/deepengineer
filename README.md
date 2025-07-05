@@ -79,7 +79,7 @@ Agents:
 
 ## Stack:
 
-- NextJS for the front and part of the backend
+- React / Vite for the frontend
 - FastAPI for the backend
 - Supabase for authentification
 - Stripe for payment
