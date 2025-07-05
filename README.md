@@ -95,9 +95,11 @@ The front end must be minimalistic and remind the user that he is an engineer.
 
 I want to use supabase for the authentification, stripe for payment and GCP for the rest.
 
-The front must be react and the back fastAPI.
+The front must be react/vite and the back fastAPI.
 
 Help build that application and guide me through.
+
+Build the frontend in a frontend directory. For the backend, there is already a package managed by uv.
 
 
 
