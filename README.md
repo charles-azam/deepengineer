@@ -76,3 +76,13 @@ Agents:
 - [ ] Running the deepsearch agent from smolagents using my web tools
 - [ ] Deploying the deepsearch agent on a server
 - [ ] Adding more tools
+
+## Stack:
+
+- NextJS for the front and part of the backend
+- FastAPI for the backend
+- Supabase for authentification
+- Stripe for payment
+- Google Cloud run for hosting
+- OVH to buy the domain name
+- GCR to store the smolagents agents
