@@ -2,6 +2,35 @@
 
 > A deep search agentic system for scientific and engineering workflows
 
+**This is a very early work in progress.**
+
+## Objectives:
+
+Webcrawler:
+- [x] functions for linkup and tavily
+- [x] function for wikipedia
+- [x] function for arxiv
+- [x] function for pubmed
+- [x] function for sciencedirect
+- [x] function for pdfs
+- [x] function for markdown
+
+Agents:
+- [x] Agent that can work with markdown sources
+- [x] Agent that can search the web 
+- [x] Agent that can analyse big pdfs and markdown sources
+- [ ] Agent that can draw
+- [ ] Agent that can draw in 3D
+- [ ] Agent that can run mechanical simulations
+
+## Deploying:
+- [X] Building a front in React
+- [ ] Connecting the front to supabase for authentification and monitoring credits
+- [ ] Deploying the deepsearch agent on GCP Cloud Run.
+
+And since I am paying, making sure that it is impossible to have an infinite bill.
+
+
 ## 🎯 About
 
 DeepEngineer is an open-source project designed to build a specialized agentic system that assists engineers and scientists. The ultimate vision is to create an AI agent that can reason, plan, and execute complex tasks, effectively augmenting and accelerating the engineering and scientific workflow.
@@ -49,30 +78,3 @@ The minimum tools needed are:
 - Deepseek (LLM)
 - Perplexity / Talily / Wikipedia / Arxiv
 
-# Objectives:
-
-Webcrawler:
-- [x] functions for linkup and tavily
-- [x] function for wikipedia
-- [x] function for arxiv
-- [x] function for pubmed
-- [x] function for sciencedirect
-- [x] function for pdfs
-- [x] function for markdown
-
-Markdown reader:
-- [ ] Agent that can work with markdown sources
-
-Agents:
-    - [ ] Webcrawler agent
-    - [ ] Markdown reader agent
-    - [ ] Drawing agent
-    - [ ] Scientific coding agent
-    - [ ] Deepsearch Agent 
-
-## Todo:
-
-- [x] Having the minimal web tools working
-- [ ] Running the deepsearch agent from smolagents using my web tools
-- [ ] Deploying the deepsearch agent on a server
-- [ ] Adding more tools
