@@ -17,6 +17,7 @@ class GetTableOfContentsTool(Tool):
     output_type = "string"
     
     def __init__(self, markdown: OCRResponse):
+        super().__init__()
         self.markdown: OCRResponse = markdown
         self.table_of_contents: str = get_table_of_contents_per_page_pdf(self.markdown)
         
@@ -30,6 +31,7 @@ class GetMarkdownTool(Tool):
     output_type = "string"
     
     def __init__(self, markdown: OCRResponse):
+        super().__init__()
         self.markdown: OCRResponse = markdown
         self.markdown_content: str = convert_ocr_response_to_markdown(self.markdown)
         
@@ -49,6 +51,7 @@ class GetPagesContentTool(Tool):
     output_type = "string"
     
     def __init__(self, markdown: OCRResponse):
+        super().__init__()
         self.markdown: OCRResponse = markdown
 
     def forward(self, page_numbers: list[int]) -> str:
@@ -66,6 +69,7 @@ class FindInPdfTool(Tool):
     output_type = "array"
     
     def __init__(self, markdown: OCRResponse):
+        super().__init__()
         self.markdown: OCRResponse = markdown
     
     def forward(self, search_queries: list[str]) -> list[int]:
