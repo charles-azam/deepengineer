@@ -1,10 +1,9 @@
-from smolagents import CodeAgent, Tool, LiteLLMModel, tool, ToolCallingAgent
+from smolagents import CodeAgent, Tool, LiteLLMModel
 from deepengineer.webcrawler.async_search import (
     linkup_search_async, arxiv_search_async, 
     pubmed_search_async, scientific_search_async,
 )
 from deepengineer.webcrawler.pdf_utils import get_table_of_contents_per_page_markdown, convert_ocr_response_to_markdown, get_markdown_by_page_numbers, find_in_markdown
-from mistralai import OCRResponse
 from enum import Enum
 import asyncio
 from deepengineer.webcrawler.async_search import SearchResponse
@@ -12,7 +11,7 @@ from deepengineer.webcrawler.crawl_database import DataBase
 
 class ToolNames(Enum):
     # Search tools
-    SEARCH_TOOL = "web search tool"
+    SEARCH_TOOL = "web_search_tool"
     ARXIV_SEARCH = "arxiv_search"
     PUBMED_SEARCH = "pubmed_search"
     SCIENCEDIRECT_SEARCH = "sciencedirect_search"
@@ -24,9 +23,9 @@ class ToolNames(Enum):
     GET_PAGES_CONTENT = "get_pages_content"
     FIND_IN_MARKDOWN = "find_in_markdown"
 
-def filter_search_results(search_response: SearchResponse, max_nb_results: int = 10) -> SearchResponse:
+def filter_search_results(search_response: SearchResponse, max_nb_results: int = 5) -> SearchResponse:
     search_response.search_results = search_response.search_results[:max_nb_results]
-    return search_response
+    return search_response.to_string()
 
 
 class SearchTool(Tool):
@@ -41,13 +40,12 @@ class SearchTool(Tool):
         },
     }
     output_type = "object"
-    max_nb_results = 10
     
-    def forward(self, search_query: str) -> SearchResponse:
+    def forward(self, search_query: str) -> str:
         result = asyncio.run(linkup_search_async(
             search_query=search_query,
         ))
-        return filter_search_results(result, SearchTool.max_nb_results)
+        return filter_search_results(result)
 
 class ArxivSearchTool(Tool):
     name = ToolNames.ARXIV_SEARCH.value
@@ -62,9 +60,9 @@ class ArxivSearchTool(Tool):
     }
     output_type = "object"
     
-    def forward(self, search_query: str) -> SearchResponse:
+    def forward(self, search_query: str) -> str:
         result = asyncio.run(arxiv_search_async(search_query))
-        return filter_search_results(result, ArxivSearchTool.max_nb_results)
+        return filter_search_results(result)
 
 class PubmedSearchTool(Tool):
     name = ToolNames.PUBMED_SEARCH.value
@@ -79,9 +77,9 @@ class PubmedSearchTool(Tool):
     }
     output_type = "object"
     
-    def forward(self, search_query: str) -> SearchResponse:
+    def forward(self, search_query: str) -> str:
         result = asyncio.run(pubmed_search_async(search_query))
-        return filter_search_results(result, PubmedSearchTool.max_nb_results)
+        return filter_search_results(result)
 
 class ScientificSearchTool(Tool):
     name = ToolNames.SCIENTIFIC_SEARCH.value
@@ -95,10 +93,9 @@ class ScientificSearchTool(Tool):
         }
     }
     output_type = "object"
-    
     def forward(self, search_query: str) -> dict:
         result = asyncio.run(scientific_search_async(search_query))
-        return result.model_dump()
+        return filter_search_results(result)
 
 URL_EXPLAINATION = """The URL can be be converted to a markdown. If the URL points to a PDF, the pdf is converted to markdown, otherwise the URL is crawled and the markdown is extracted. This markdown is split into pages that are numbered. You can use the page numbers to get the content of the pages."""
 
@@ -194,6 +191,7 @@ def create_web_search_agent(model_id="deepseek/deepseek-chat"):
     """Create a web search agent with search, crawling, and PDF analysis capabilities."""
     
     model = LiteLLMModel(model_id=model_id)
+    database = DataBase()
 
     # Web search and crawling tools
     WEB_SEARCH_TOOLS = [
@@ -201,13 +199,13 @@ def create_web_search_agent(model_id="deepseek/deepseek-chat"):
         ArxivSearchTool(),
         PubmedSearchTool(),
         ScientificSearchTool(),
-        GetTableOfContentsTool(),
-        GetMarkdownTool(),
-        GetPagesContentTool(),
-        FindInMarkdownTool(),
+        GetTableOfContentsTool(database),
+        GetMarkdownTool(database),
+        GetPagesContentTool(database),
+        FindInMarkdownTool(database),
     ]
     
-    web_search_agent = ToolCallingAgent(
+    web_search_agent = CodeAgent(
         model=model,
         tools=WEB_SEARCH_TOOLS,
         max_steps=20,
