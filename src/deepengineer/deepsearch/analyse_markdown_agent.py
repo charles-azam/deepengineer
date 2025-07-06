@@ -91,7 +91,6 @@ def create_agent(markdown: OCRResponse, model_id="deepseek/deepseek-chat"):
         planning_interval=4,
         name="pdf_agent",
         description="""A team member that will search the internet to answer your question.""",
-        provide_run_summary=True,
     )
     pdf_agent.prompt_templates["managed_agent"]["task"] += """You can navigate to .txt online files."""
 
