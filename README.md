@@ -22,6 +22,7 @@ Agents:
 - [ ] Agent that can draw
 - [ ] Agent that can draw in 3D
 - [ ] Agent that can run mechanical simulations
+- [ ] Scientific prompt for engineering tasks
 
 ## Deploying:
 - [X] Building a front in React
