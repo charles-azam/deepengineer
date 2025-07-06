@@ -1,4 +1,4 @@
-from deepengineer.webcrawler.pdf_utils import convert_pdf_to_markdown_async, convert_ocr_response_to_markdown, find_in_pdf, get_table_of_contents_per_page_pdf, get_markdown_by_page_numbers
+from deepengineer.webcrawler.pdf_utils import convert_pdf_to_markdown_async, convert_ocr_response_to_markdown, find_in_markdown, get_table_of_contents_per_page_markdown, get_markdown_by_page_numbers
 from mistralai import OCRResponse
 from deepengineer.common_path import DATA_DIR
 import pytest
@@ -22,12 +22,12 @@ async def test_convert_pdf_to_markdown_async():
 
 def test_table_of_contents_per_page_pdf():
     ocr_response = load_mock_ocr_response()
-    table_of_contents = get_table_of_contents_per_page_pdf(ocr_response)
+    table_of_contents = get_table_of_contents_per_page_markdown(ocr_response)
     assert "References - Page 15" in table_of_contents
 
 def test_find_in_pdf():
     ocr_response = load_mock_ocr_response()
-    page_numbers = find_in_pdf(ocr_response, "where each cylinder represent")
+    page_numbers = find_in_markdown(ocr_response, "where each cylinder represent")
     assert page_numbers == [7]
 
 def test_get_markdown_by_page_numbers():

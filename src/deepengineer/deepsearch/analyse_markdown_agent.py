@@ -1,5 +1,5 @@
 from smolagents import CodeAgent, tool, Tool, LiteLLMModel
-from deepengineer.webcrawler.pdf_utils import get_markdown_by_page_numbers, get_table_of_contents_per_page_pdf, find_in_pdf, convert_ocr_response_to_markdown
+from deepengineer.webcrawler.pdf_utils import get_markdown_by_page_numbers, get_table_of_contents_per_page_markdown, find_in_markdown, convert_ocr_response_to_markdown
 from mistralai import OCRResponse
 from enum import Enum
 from pathlib import Path
@@ -8,7 +8,7 @@ class ToolNames(Enum):
     GET_TABLE_OF_CONTENTS = "get_table_of_contents"
     GET_MARKDOWN = "get_markdown"
     GET_PAGES_CONTENT = "get_pages_content"
-    FIND_IN_PDF = "find_in_pdf"
+    FIND_IN_MARKDOWN = "find_in_markdown"
 
 class GetTableOfContentsTool(Tool):
     name = ToolNames.GET_TABLE_OF_CONTENTS.value
@@ -19,7 +19,7 @@ class GetTableOfContentsTool(Tool):
     def __init__(self, markdown: OCRResponse):
         super().__init__()
         self.markdown: OCRResponse = markdown
-        self.table_of_contents: str = get_table_of_contents_per_page_pdf(self.markdown)
+        self.table_of_contents: str = get_table_of_contents_per_page_markdown(self.markdown)
         
     def forward(self) -> str:
         return self.table_of_contents
@@ -57,8 +57,8 @@ class GetPagesContentTool(Tool):
     def forward(self, page_numbers: list[int]) -> str:
         return get_markdown_by_page_numbers(self.markdown, page_numbers)
     
-class FindInPdfTool(Tool):
-    name = ToolNames.FIND_IN_PDF.value
+class FindInMarkdownTool(Tool):
+    name = ToolNames.FIND_IN_MARKDOWN.value
     description = f"Finds the page numbers of the document that contain the search queries. If you are looking for a specific information, you can use this tool to find the page numbers of the document that contain the information and then use {ToolNames.GET_PAGES_CONTENT.value} to get the content of the pages."
     inputs = {
         "search_queries": {
@@ -73,7 +73,7 @@ class FindInPdfTool(Tool):
         self.markdown: OCRResponse = markdown
     
     def forward(self, search_queries: list[str]) -> list[int]:
-        return find_in_pdf(self.markdown, search_queries)
+        return find_in_markdown(self.markdown, search_queries)
 
 
         
@@ -81,21 +81,21 @@ def create_agent(markdown: OCRResponse, model_id="deepseek/deepseek-chat"):
 
     model = LiteLLMModel(model_id=model_id)
 
-    PDFS_TOOLS = [
+    MARKDOWN_TOOLS = [
         GetTableOfContentsTool(markdown),
         GetMarkdownTool(markdown),
         GetPagesContentTool(markdown),
-        FindInPdfTool(markdown),
+        FindInMarkdownTool(markdown),
     ]
-    pdf_agent = CodeAgent(
+    markdown_agent = CodeAgent(
         model=model,
-        tools=PDFS_TOOLS,
+        tools=MARKDOWN_TOOLS,
         max_steps=20,
         verbosity_level=2,
         planning_interval=4,
-        name="pdf_agent",
-        description="""A team member that will search the internet to answer your question.""",
+        name="markdown_agent",
+        description="""A team member that can analyse a markdown.""",
     )
-    pdf_agent.prompt_templates["managed_agent"]["task"] += """You can navigate to .txt online files."""
+    markdown_agent.prompt_templates["managed_agent"]["task"] += """You can navigate to .txt online files."""
 
-    return pdf_agent
+    return markdown_agent
