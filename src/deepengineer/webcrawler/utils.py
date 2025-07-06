@@ -1,6 +1,7 @@
 import re
 import unicodedata
 
+
 def sanitize_filename(filename, replacement_char="_", max_length=255):
     """
     Sanitizes a string to be suitable for use as a filename.
@@ -31,26 +32,32 @@ def sanitize_filename(filename, replacement_char="_", max_length=255):
     # 1. Replace spaces with the replacement_char
     # This is done early to ensure spaces are handled before other replacements
     # to avoid issues with double replacement characters in subsequent steps.
-    cleaned_filename = filename.replace(' ', replacement_char)
+    cleaned_filename = filename.replace(" ", replacement_char)
 
     # 2. Convert to NFKD and encode to ASCII to handle accented characters
     # This transforms 'crème brûlée' into 'creme brulee'
-    cleaned_filename = unicodedata.normalize('NFKD', cleaned_filename).encode('ascii', 'ignore').decode('utf-8')
+    cleaned_filename = (
+        unicodedata.normalize("NFKD", cleaned_filename)
+        .encode("ascii", "ignore")
+        .decode("utf-8")
+    )
 
     # 3. Remove characters that are not alphanumeric, hyphen, underscore, or period.
     #    Replace them with the specified replacement_char.
     #    The regex pattern `[^a-zA-Z0-9\-_.]` matches any character that is NOT
     #    (a-z, A-Z, 0-9, hyphen, underscore, or period).
-    cleaned_filename = re.sub(r'[^a-zA-Z0-9\-_.]', replacement_char, cleaned_filename)
+    cleaned_filename = re.sub(r"[^a-zA-Z0-9\-_.]", replacement_char, cleaned_filename)
 
     # 4. Replace multiple consecutive replacement_char characters with a single one
-    cleaned_filename = re.sub(re.escape(replacement_char) + r'+', replacement_char, cleaned_filename)
+    cleaned_filename = re.sub(
+        re.escape(replacement_char) + r"+", replacement_char, cleaned_filename
+    )
 
     # 5. Trim leading/trailing replacement_char characters
     cleaned_filename = cleaned_filename.strip(replacement_char)
 
     # 6. Ensure the filename doesn't start with a period (hidden file on some systems)
-    if cleaned_filename.startswith('.'):
+    if cleaned_filename.startswith("."):
         cleaned_filename = replacement_char + cleaned_filename[1:]
 
     # 7. Truncate to max_length
@@ -58,12 +65,12 @@ def sanitize_filename(filename, replacement_char="_", max_length=255):
     if len(cleaned_filename) > max_length:
         # Try to keep the file extension if present
         name, ext = "", ""
-        if '.' in cleaned_filename:
-            parts = cleaned_filename.rsplit('.', 1)
+        if "." in cleaned_filename:
+            parts = cleaned_filename.rsplit(".", 1)
             name, ext = parts[0], "." + parts[1]
 
         if len(name) > max_length - len(ext):
-            cleaned_filename = name[:max_length - len(ext)] + ext
+            cleaned_filename = name[: max_length - len(ext)] + ext
         else:
             cleaned_filename = cleaned_filename[:max_length]
 

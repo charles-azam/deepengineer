@@ -1,60 +1,66 @@
 import os
-import asyncio
-import requests
-from pydantic import BaseModel, Field
-from typing import List, Optional, Literal
 from enum import Enum
+from typing import Literal
 
+import requests
 from linkup import LinkupClient, LinkupSourcedAnswer
+from pydantic import BaseModel, Field
 from tavily import AsyncTavilyClient
 
-from langchain_community.retrievers import ArxivRetriever
-from langchain_community.utilities.pubmed import PubMedAPIWrapper
 
 class SearchResult(BaseModel):
     """Represents a single search result from any search API."""
+
     title: str = Field(..., description="Title of the search result")
     url: str = Field(..., description="URL of the result")
     content: str = Field(..., description="Summary/snippet of content")
-    raw_content: Optional[str] = Field(None, description="Full page content if available")
+    raw_content: str | None = Field(None, description="Full page content if available")
+
 
 class SearchResponse(BaseModel):
     """Represents a search response from any search API."""
+
     query: str = Field(..., description="The original search query")
-    answer: str | None = Field(None, description="Direct answer from the search API if available")
-    search_results: list[SearchResult] = Field(default_factory=list, description="List of search results")
-    
+    answer: str | None = Field(
+        None, description="Direct answer from the search API if available"
+    )
+    search_results: list[SearchResult] = Field(
+        default_factory=list, description="List of search results"
+    )
+
     def to_string(self):
         """Convert search response to a formatted string suitable for LLM consumption."""
         result_parts = []
-        
+
         # Add the query
         result_parts.append(f"Search Query: {self.query}\n")
-        
+
         # Add the direct answer if available
         if self.answer:
             result_parts.append(f"Direct Answer: {self.answer}\n")
-        
+
         # Add search results
         if self.search_results:
             result_parts.append(f"Found {len(self.search_results)} search results:\n")
-            
+
             for i, result in enumerate(self.search_results, 1):
                 result_parts.append(f"\n--- Result {i} ---")
                 result_parts.append(f"Title: {result.title}")
                 result_parts.append(f"URL: {result.url}")
-                result_parts.append(f"Content: {result.content[:2000]}...")                
+                result_parts.append(f"Content: {result.content[:2000]}...")
                 result_parts.append("")  # Empty line for separation
         else:
             result_parts.append("No search results found.")
-        
+
         return "\n".join(result_parts)
-    
+
+
 class ScientificDomains(str, Enum):
     wikipedia = "wikipedia.org"
     arxiv = "arxiv.org"
     pubmed = "pubmed.ncbi.nlm.nih.gov"
     sciencedirect = "sciencedirect.com"
+
 
 def get_tavily_usage():
     url = "https://api.tavily.com/usage"
@@ -71,14 +77,14 @@ async def tavily_search_async(
     include_answer: Literal["basic", "advanced"] | None = "advanced",
     include_raw_content: Literal["text", "markdown"] | None = "markdown",
     include_images: bool = False,
-    search_depth: Literal['basic', 'advanced'] | None = "basic",
+    search_depth: Literal["basic", "advanced"] | None = "basic",
     include_domains: list[ScientificDomains] = None,
 ) -> SearchResponse:
     """
     Performs concurrent web searches with the Tavily API
     """
     tavily_async_client = AsyncTavilyClient()
-    
+
     search_response = await tavily_async_client.search(
         query=search_query,
         search_depth=search_depth,
@@ -88,29 +94,29 @@ async def tavily_search_async(
         include_images=include_images,
         include_domains=include_domains,
     )
-    
+
     search_results = [
         SearchResult(
-            title=result.get('title', ''),
-            url=result.get('url', ''),
-            content=result.get('content', ''),
-            raw_content=result.get('raw_content')
+            title=result.get("title", ""),
+            url=result.get("url", ""),
+            content=result.get("content", ""),
+            raw_content=result.get("raw_content"),
         )
-        for result in search_response.get('results', [])
+        for result in search_response.get("results", [])
     ]
 
     # Convert to our Pydantic models
     responses: SearchResponse = SearchResponse(
         query=search_query,
-        answer=search_response.get('answer', None),
-        search_results=search_results
+        answer=search_response.get("answer", None),
+        search_results=search_results,
     )
     return responses
 
 
 def get_linkup_balance():
     url = "https://api.linkup.so/v1/credits/balance"
-    
+
     headers = {"Authorization": f"Bearer {os.getenv('LINKUP_API_KEY')}"}
 
     response = requests.request("GET", url, headers=headers)
@@ -122,14 +128,16 @@ def get_linkup_balance():
 async def linkup_search_async(
     search_query: str,
     depth: Literal["standard", "deep"] = "standard",
-    output_type: Literal['searchResults', 'sourcedAnswer', 'structured'] = "sourcedAnswer",
+    output_type: Literal[
+        "searchResults", "sourcedAnswer", "structured"
+    ] = "sourcedAnswer",
     include_images: bool = False,
     include_domains: list[ScientificDomains] = None,
 ) -> SearchResponse:
     """
     Performs concurrent web searches using the Linkup API.
     """
-    
+
     client = LinkupClient()
     search_response: LinkupSourcedAnswer = await client.async_search(
         query=search_query,
@@ -138,7 +146,7 @@ async def linkup_search_async(
         include_images=include_images,
         include_domains=include_domains,
     )
-    
+
     search_results = [
         SearchResult(
             title=result.name,
@@ -151,37 +159,48 @@ async def linkup_search_async(
 
     # Convert to our Pydantic models
     responses: SearchResponse = SearchResponse(
-        query=search_query,
-        answer=search_response.answer,
-        search_results=search_results
+        query=search_query, answer=search_response.answer, search_results=search_results
     )
     return responses
-
-
-
 
 
 async def arxiv_search_async(
     search_query: str,
 ) -> SearchResponse:
-    response = await linkup_search_async(search_query, include_domains=[ScientificDomains.arxiv])
+    response = await linkup_search_async(
+        search_query, include_domains=[ScientificDomains.arxiv]
+    )
     return response
 
 
 async def pubmed_search_async(
     search_query: str,
 ) -> SearchResponse:
-    response = await linkup_search_async(search_query, include_domains=[ScientificDomains.pubmed])
+    response = await linkup_search_async(
+        search_query, include_domains=[ScientificDomains.pubmed]
+    )
     return response
+
 
 async def sciencedirect_search_async(
     search_query: str,
 ) -> SearchResponse:
-    response = await linkup_search_async(search_query, include_domains=[ScientificDomains.sciencedirect])
+    response = await linkup_search_async(
+        search_query, include_domains=[ScientificDomains.sciencedirect]
+    )
     return response
+
 
 async def scientific_search_async(
     search_query: str,
 ) -> SearchResponse:
-    response = await linkup_search_async(search_query, include_domains=[ScientificDomains.wikipedia, ScientificDomains.arxiv, ScientificDomains.pubmed, ScientificDomains.sciencedirect])
+    response = await linkup_search_async(
+        search_query,
+        include_domains=[
+            ScientificDomains.wikipedia,
+            ScientificDomains.arxiv,
+            ScientificDomains.pubmed,
+            ScientificDomains.sciencedirect,
+        ],
+    )
     return response
