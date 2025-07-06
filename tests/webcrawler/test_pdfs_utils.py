@@ -1,4 +1,4 @@
-from deepengineer.webcrawler.pdf_tools import convert_pdf_to_markdown_async, convert_ocr_response_to_markdown, find_in_pdf, table_of_contents_per_page_pdf, get_markdown_by_page_numbers
+from deepengineer.webcrawler.pdf_utils import convert_pdf_to_markdown_async, convert_ocr_response_to_markdown, find_in_pdf, table_of_contents_per_page_pdf, get_markdown_by_page_numbers
 from mistralai import OCRResponse
 from deepengineer.common_path import DATA_DIR
 import pytest
