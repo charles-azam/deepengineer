@@ -11,6 +11,25 @@ from mistralai import OCRResponse
 from enum import Enum
 from pathlib import Path
 import asyncio
+from typing import Literal
+from deepengineer.webcrawler.utils import sanitize_filename
+from deepengineer.common_path import DATA_DIR
+from deepengineer.webcrawler.async_search import SearchResult
+
+class DataBase():
+    def __init__(self):
+        self.storage_path = DATA_DIR
+        self.storage_path.mkdir(exist_ok=True, parents=True)
+        self.sources = dict[str, SearchResult]
+        
+    def add_sources(self, sources: list[SearchResult]):
+        for source in sources:
+            self.sources[source.url] = source
+        
+    def get_sources_by_url(self, url: str) -> SearchResult:
+        return self.sources[url]
+    
+    
 
 class ToolNames(Enum):
     # Search tools
@@ -32,23 +51,9 @@ class ToolNames(Enum):
     GET_PAGES_CONTENT = "get_pages_content"
     FIND_IN_MARKDOWN = "find_in_markdown"
 
-class TavilySearchTool(Tool):
-    name = ToolNames.TAVILY_SEARCH.value
-    description = "Search the web using Tavily API. Good for general web searches with advanced features."
-    inputs = {
-        "search_query": {
-            "type": "string",
-            "description": "The search query to execute"
-        },
-    }
-    output_type = "object"
-    def forward(self, search_query: str) -> dict:
-        result = asyncio.run(tavily_search_async(
-            search_query=search_query,
-        ))
-        return result.model_dump()
 
-class LinkupSearchTool(Tool):
+class SearchTool(Tool):
+    provider: Literal["tavily", "linkup"]
     name = ToolNames.LINKUP_SEARCH.value
     description = "Search the web using Linkup API. Good for deep research with sourced answers."
     inputs = {
@@ -287,8 +292,6 @@ def create_web_search_agent(model_id="deepseek/deepseek-chat"):
     """
 
     return web_search_agent
-
-
 
 def create_web_search_agent_with_pdf_analysis(markdown: OCRResponse, model_id="deepseek/deepseek-chat"):
     """Create a web search agent that also includes PDF analysis capabilities."""
