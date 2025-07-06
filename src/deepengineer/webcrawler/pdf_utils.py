@@ -62,7 +62,7 @@ def get_markdown_by_page_numbers(markdown: OCRResponse, page_numbers: list[int],
         markdowns.append(f"*Page {page_number}*\n{markdown.pages[page_number].markdown}")
     return "\n\n".join(markdowns)
 
-def find_in_pdf(markdown: OCRResponse, search_queries: list[str]) -> list[int]:
+def find_in_markdown(markdown: OCRResponse, search_queries: list[str]) -> list[int]:
     """
     Find the page numbers of the pdf that contain the search query.
 
@@ -80,7 +80,7 @@ def find_in_pdf(markdown: OCRResponse, search_queries: list[str]) -> list[int]:
                 page_numbers.append(page_number)
     return page_numbers
 
-def get_table_of_contents_per_page_pdf(markdown: OCRResponse) -> str:
+def get_table_of_contents_per_page_markdown(markdown: OCRResponse) -> str:
     """
     Get the table of contents of the pdf.
     
