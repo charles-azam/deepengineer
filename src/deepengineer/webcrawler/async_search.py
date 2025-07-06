@@ -24,6 +24,32 @@ class SearchResponse(BaseModel):
     answer: str | None = Field(None, description="Direct answer from the search API if available")
     search_results: list[SearchResult] = Field(default_factory=list, description="List of search results")
     
+    def to_string(self):
+        """Convert search response to a formatted string suitable for LLM consumption."""
+        result_parts = []
+        
+        # Add the query
+        result_parts.append(f"Search Query: {self.query}\n")
+        
+        # Add the direct answer if available
+        if self.answer:
+            result_parts.append(f"Direct Answer: {self.answer}\n")
+        
+        # Add search results
+        if self.search_results:
+            result_parts.append(f"Found {len(self.search_results)} search results:\n")
+            
+            for i, result in enumerate(self.search_results, 1):
+                result_parts.append(f"\n--- Result {i} ---")
+                result_parts.append(f"Title: {result.title}")
+                result_parts.append(f"URL: {result.url}")
+                result_parts.append(f"Content: {result.content[:2000]}...")                
+                result_parts.append("")  # Empty line for separation
+        else:
+            result_parts.append("No search results found.")
+        
+        return "\n".join(result_parts)
+    
 class ScientificDomains(str, Enum):
     wikipedia = "wikipedia.org"
     arxiv = "arxiv.org"
