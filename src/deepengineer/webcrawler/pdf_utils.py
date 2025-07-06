@@ -7,7 +7,7 @@ from mistralai import Mistral
 import os
 from litellm import completion
 
-from mistralai.models import OCRResponse
+from mistralai.models import OCRResponse, OCRPageObject
 import yaml
 from tenacity import retry, stop_after_attempt, wait_fixed, RetryError
 from litellm.exceptions import BadRequestError
@@ -52,34 +52,45 @@ def convert_ocr_response_to_markdown(
         
     return "\n\n".join(markdowns)
 
-def get_markdown_by_page_numbers(markdown: OCRResponse, page_numbers: list[int]) -> str:
+def get_markdown_by_page_numbers(markdown: OCRResponse, page_numbers: list[int], get_full_content: bool = False) -> str:
     markdowns: list[str] = []
-    for page_number in page_numbers:
+    page_numbers_to_get = set(page_numbers)
+    if get_full_content:
+        page_numbers_to_get = set(range(len(markdown.pages)))
+
+    for page_number in page_numbers_to_get:
         markdowns.append(f"*Page {page_number}*\n{markdown.pages[page_number].markdown}")
     return "\n\n".join(markdowns)
 
-def find_in_pdf(markdown: OCRResponse, search_query: str) -> list[int]:
+def find_in_pdf(markdown: OCRResponse, search_queries: list[str]) -> list[int]:
     """
     Find the page numbers of the pdf that contain the search query.
 
     Args:
         markdown (OCRResponse): The markdown of the pdf.
-        search_query (str): The search query.
+        search_queries (list[str]): The search queries.
 
     Returns:
         list[int]: The page numbers of the pdf that contain the search query.
     """
     page_numbers: list[int] = []
     for page_number, page in enumerate(markdown.pages):
-        if search_query.lower() in page.markdown.lower():
-            page_numbers.append(page_number)
+        for search_query in search_queries:
+            if search_query.lower() in page.markdown.lower():
+                page_numbers.append(page_number)
     return page_numbers
 
-def table_of_contents_per_page_pdf(markdown: OCRResponse) -> str:
+def get_table_of_contents_per_page_pdf(markdown: OCRResponse) -> str:
     """
     Get the table of contents of the pdf.
     
     Finds all the titles of the pdf to reconstruct the table of contents.
+    
+    Args:
+        markdown (OCRResponse): The markdown of the pdf.
+
+    Returns:
+        str: The table of contents of the pdf.
     """
     title_to_page_number: dict[str, int] = {}
     for page_number, page in enumerate(markdown.pages):
@@ -91,6 +102,13 @@ def table_of_contents_per_page_pdf(markdown: OCRResponse) -> str:
 
     table_of_contents = "\n".join([f"{title} - Page {page_number}" for title, page_number in title_to_page_number.items()])
     return table_of_contents
+
+def convert_raw_markdown_to_ocr_response(raw_markdown: str) -> OCRResponse:
+    # split by big title starting with # and then a space
+    pages = raw_markdown.split("\n# ")
+    return OCRResponse(pages=[OCRPageObject(markdown="# " + page, page_number=i) for i, page in enumerate(pages)])
+
+
 
 def get_images_from_pdf(pdf_path: Path, image_ids: list[str]) -> list[str]:
     raise NotImplementedError("Not implemented")
