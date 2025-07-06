@@ -288,6 +288,8 @@ def create_web_search_agent(model_id="deepseek/deepseek-chat"):
 
     return web_search_agent
 
+
+
 def create_web_search_agent_with_pdf_analysis(markdown: OCRResponse, model_id="deepseek/deepseek-chat"):
     """Create a web search agent that also includes PDF analysis capabilities."""
     
@@ -323,6 +325,7 @@ def create_web_search_agent_with_pdf_analysis(markdown: OCRResponse, model_id="d
         planning_interval=4,
         name="web_search_agent_with_pdf_analysis",
         description="""A team member that can search the web, crawl URLs, download PDFs, and analyze the provided PDF document.""",
+        additional_authorized_imports=["numpy", "matplotlib", "scipy", "sympy", "pandas", ],
     )
     
     web_search_agent.prompt_templates["managed_agent"]["task"] += """
