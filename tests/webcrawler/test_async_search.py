@@ -4,7 +4,7 @@ from deepengineer.webcrawler.async_search import (
     tavily_search_async,
     SearchResponse,
     get_tavily_usage,
-    async_linkup_search,
+    linkup_search_async,
     get_linkup_balance
 )
 
@@ -47,7 +47,7 @@ async def test_linkup_search_async():
     balance_before = get_linkup_balance()
     print(balance_before)
 
-    response = await async_linkup_search(
+    response = await linkup_search_async(
         search_query="Would it be possible to make a thermal reactor with graphite and lead?",
     )
     print(response.answer)
