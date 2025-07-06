@@ -23,7 +23,7 @@ jobs:
       - name: Install the project
         run: uv sync --locked --all-extras --dev
 
-     - name: Run tests
+      - name: Run tests
         run: uv run pytest tests
         env:
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
