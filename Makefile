@@ -11,7 +11,7 @@ install-pre-commit:  ## Install pre-commit hooks
 	uv run pre-commit install
 
 format:  ## Format code with black
-	uv run black src tests
+	uv run ruff format src tests
 
 lint:  ## Run ruff linter
 	uv run ruff check src tests
