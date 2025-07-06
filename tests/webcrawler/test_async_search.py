@@ -5,8 +5,10 @@ from deepengineer.webcrawler.async_search import (
     SearchResponse,
     get_tavily_usage,
     linkup_search_async,
-    get_linkup_balance
+    get_linkup_balance,
+    arxiv_search_async
 )
+import numpy as np
 
 
 @pytest.mark.expensive
@@ -34,7 +36,8 @@ async def test_tavily_search_async():
     assert response.search_results[0].title is not None
     assert response.search_results[0].url is not None
     assert response.search_results[0].content is not None
-    assert any(result.raw_content is not None for result in response.search_results)
+    # raw content is often not available for tavily
+    # assert any(result.raw_content is not None for result in response.search_results)
 
     usage_after = get_tavily_usage()
     print(usage_after)
@@ -65,4 +68,32 @@ async def test_linkup_search_async():
 
     balance_after = get_linkup_balance()
     print(balance_after)
-    assert balance_after == balance_before - 0.005
+    assert np.isclose(balance_after, balance_before - 0.005)
+    
+@pytest.mark.expensive
+@pytest.mark.asyncio
+async def test_arxiv_search_async():
+    balance_before = get_linkup_balance()
+
+    response = await arxiv_search_async(
+        search_query="Would it be possible to make a thermal reactor with graphite and lead?",
+    )
+    
+    assert response is not None
+    assert isinstance(response, SearchResponse)
+    assert response.query is not None
+    assert response.answer is not None
+    assert response.search_results is not None
+    assert len(response.search_results) >= 10
+    assert any(result.url.startswith("https://arxiv.org/abs/") for result in response.search_results)
+
+    balance_after = get_linkup_balance()
+    assert np.isclose(balance_after, balance_before - 0.005)
+    
+    
+    
+    
+    
+    
+    
+    
