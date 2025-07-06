@@ -20,8 +20,8 @@ async def download_pdf_async(url: str, output_path: Path) -> str:
         await f.write(response.content)
     return output_path
 
-async def arxiv_download_pdf_async(url: str, output_path: Path) -> str:
-    """Download a PDF from arXiv by converting the abstract URL to PDF URL."""
+async def download_pdf_or_arxiv_pdf_async(url: str, output_path: Path) -> str:
+    """Download a PDF from arXiv by converting the abstract URL to PDF URL. Works also for non arXiv URLs."""
     # Extract the arXiv ID from the URL
     if "/abs/" in url:
         arxiv_id = url.split("/abs/")[1].rstrip("/")
@@ -31,3 +31,4 @@ async def arxiv_download_pdf_async(url: str, output_path: Path) -> str:
         pdf_url = url
     
     return await download_pdf_async(pdf_url, output_path)
+
