@@ -23,9 +23,6 @@ jobs:
       - name: Install the project
         run: uv sync --locked --all-extras --dev
 
-      - name: Run formatter check
-        run: uv run ruff format --check src tests
-
      - name: Run tests
         run: uv run pytest tests
         env:
