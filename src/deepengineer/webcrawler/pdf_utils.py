@@ -19,7 +19,7 @@ MAX_SIZE_BYTES = 49 * 1024 * 1024
 async def convert_pdf_to_markdown_async(
     pdf_path: Path,
     with_image_description: bool = False,
-) -> tuple[OCRResponse]:
+) -> OCRResponse:
     
     mistral_client = Mistral(api_key=os.getenv("MISTRAL_API_KEY"))
 
@@ -62,7 +62,7 @@ def get_markdown_by_page_numbers(markdown: OCRResponse, page_numbers: list[int],
         markdowns.append(f"*Page {page_number}*\n{markdown.pages[page_number].markdown}")
     return "\n\n".join(markdowns)
 
-def find_in_markdown(markdown: OCRResponse, search_queries: list[str]) -> list[int]:
+def find_in_markdown(markdown: OCRResponse, search_queries: list[str] | str) -> list[int]:
     """
     Find the page numbers of the pdf that contain the search query.
 
@@ -73,6 +73,8 @@ def find_in_markdown(markdown: OCRResponse, search_queries: list[str]) -> list[i
     Returns:
         list[int]: The page numbers of the pdf that contain the search query.
     """
+    if isinstance(search_queries, str):
+        search_queries = [search_queries]
     page_numbers: list[int] = []
     for page_number, page in enumerate(markdown.pages):
         for search_query in search_queries:

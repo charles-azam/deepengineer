@@ -78,6 +78,8 @@ class FindInMarkdownTool(Tool):
 
         
 def create_agent(markdown: OCRResponse, model_id="deepseek/deepseek-chat"):
+    
+    """This agent is just a test and will not be used as is by the main agent."""
 
     model = LiteLLMModel(model_id=model_id)
 

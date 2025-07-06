@@ -1,0 +1,19 @@
+from deepengineer.webcrawler.crawl_database import DataBase
+
+def test_crawl_database_arxiv_pdf():
+    db = DataBase()
+    db.crawl_url("https://arxiv.org/pdf/2105.00643")
+    assert db.get_markdown_of_url("https://arxiv.org/pdf/2105.00643") is not None
+    assert db.get_markdown_of_url("https://arxiv.org/abs/2105.00643") is not None
+    assert db.get_markdown_of_url("https://arxiv.org/pdf/2105.00643").pages[0].markdown is not None
+    assert len(db.get_markdown_of_url("https://arxiv.org/pdf/2105.00643").pages) == 20
+    
+def test_crawl_database_arxiv_link():
+    db = DataBase()
+    db.crawl_url("https://arxiv.org/abs/2105.00643")
+    assert db.get_markdown_of_url("https://arxiv.org/abs/2105.00643") is not None
+    assert db.get_markdown_of_url("https://arxiv.org/pdf/2105.00643") is not None
+    assert db.get_markdown_of_url("https://arxiv.org/abs/2105.00643").pages[0].markdown is not None
+    assert len(db.get_markdown_of_url("https://arxiv.org/abs/2105.00643").pages) == 20
+    
+    

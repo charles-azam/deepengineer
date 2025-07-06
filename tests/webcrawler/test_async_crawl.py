@@ -2,7 +2,7 @@ import pytest
 from deepengineer.webcrawler.async_crawl import (
     crawl4ai_extract_markdown_of_url_async,
     download_pdf_async,
-    arxiv_download_pdf_async,
+    download_pdf_or_arxiv_pdf_async,
 )
 from mistralai import OCRResponse
 from deepengineer.webcrawler.testing import URL_WIKIPEDIA, URL_PDF, ARXIV_URL
@@ -27,6 +27,6 @@ async def test_arxiv_download_pdf_async():
     output_path = DATA_DIR / "temp.pdf"
     output_path.unlink(missing_ok=True)
     assert not output_path.exists()
-    pdf_path = await arxiv_download_pdf_async(ARXIV_URL, output_path=output_path)
+    pdf_path = await download_pdf_or_arxiv_pdf_async(ARXIV_URL, output_path=output_path)
     assert pdf_path == output_path
     assert output_path.exists()
