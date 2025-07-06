@@ -93,7 +93,7 @@ def get_linkup_balance():
     return balance
 
 
-async def async_linkup_search(
+async def linkup_search_async(
     search_query: str,
     depth: Literal["standard", "deep"] = "standard",
     output_type: Literal['searchResults', 'sourcedAnswer', 'structured'] = "sourcedAnswer",
@@ -138,24 +138,24 @@ async def async_linkup_search(
 async def arxiv_search_async(
     search_query: str,
 ) -> SearchResponse:
-    response = await async_linkup_search(search_query, include_domains=[ScientificDomains.arxiv])
+    response = await linkup_search_async(search_query, include_domains=[ScientificDomains.arxiv])
     return response
 
 
 async def pubmed_search_async(
     search_query: str,
 ) -> SearchResponse:
-    response = await async_linkup_search(search_query, include_domains=[ScientificDomains.pubmed])
+    response = await linkup_search_async(search_query, include_domains=[ScientificDomains.pubmed])
     return response
 
 async def sciencedirect_search_async(
     search_query: str,
 ) -> SearchResponse:
-    response = await async_linkup_search(search_query, include_domains=[ScientificDomains.sciencedirect])
+    response = await linkup_search_async(search_query, include_domains=[ScientificDomains.sciencedirect])
     return response
 
 async def scientific_search_async(
     search_query: str,
 ) -> SearchResponse:
-    response = await async_linkup_search(search_query, include_domains=[ScientificDomains.wikipedia, ScientificDomains.arxiv, ScientificDomains.pubmed, ScientificDomains.sciencedirect])
+    response = await linkup_search_async(search_query, include_domains=[ScientificDomains.wikipedia, ScientificDomains.arxiv, ScientificDomains.pubmed, ScientificDomains.sciencedirect])
     return response

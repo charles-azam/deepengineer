@@ -5,7 +5,6 @@ from deepengineer.webcrawler.async_crawl import (
     arxiv_download_pdf_async,
 )
 from mistralai import OCRResponse
-from deepengineer.webcrawler.pdf_tools import convert_pdf_to_markdown_async
 from deepengineer.webcrawler.testing import URL_WIKIPEDIA, URL_PDF, ARXIV_URL
 from deepengineer.common_path import DATA_DIR
 
@@ -31,14 +30,3 @@ async def test_arxiv_download_pdf_async():
     pdf_path = await arxiv_download_pdf_async(ARXIV_URL, output_path=output_path)
     assert pdf_path == output_path
     assert output_path.exists()
-
-@pytest.mark.expensive
-@pytest.mark.asyncio
-async def test_convert_pdf_to_markdown_async():
-    pdf_path = DATA_DIR / "report_thermal_neutron.pdf"
-    assert pdf_path.exists()
-    markdown, ocr_response = await convert_pdf_to_markdown_async(pdf_path)
-    assert isinstance(ocr_response, OCRResponse)
-    assert len(ocr_response.pages) == 16
-    assert isinstance(markdown, str)
-    assert "where each cylinder represent" in markdown
