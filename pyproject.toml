@@ -10,33 +10,50 @@ requires-python = ">=3.13"
 dependencies = [
     "crawl4ai>=0.6.0",
     "smolagents>=1.19.0",
-    "openai",
-    "datasets",
-    "transformers",
     "litellm",
-    "langchain",
-    "fasttext-wheel",
-    "wikipedia-api",
-    "pillow",
-    "gradio",
-    "python-dotenv>=1.1.1",
-    "httpx",
-    "pypdf",
     "pytest-asyncio>=1.0.0",
     "mistralai>=1.9.1",
-    "fastapi>=0.115.14",
-    "supabase>=2.16.0",
-    "ipython>=9.4.0",
-    "numpy>=2.3.1",
-    "pandas>=2.3.0",
-    "matplotlib>=3.10.3",
-    "scipy>=1.16.0",
-    "sympy>=1.14.0",
+    "linkup-sdk>=0.2.8",
+    "tavily-python>=0.7.9",
+    "pypdf>=5.7.0",
 ]
 
 [project.scripts]
 deepengineer = "deepengineer:main"
 
+[project.optional-dependencies]
+dev = [
+    "black>=24.0.0",
+    "ruff>=0.2.0",
+    "pre-commit>=3.6.0",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.black]
+line-length = 88
+target-version = ['py313']
+
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
