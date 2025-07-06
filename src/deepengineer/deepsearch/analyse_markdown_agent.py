@@ -1,3 +1,7 @@
+"""
+Simple agent to analyse a markdown, just to test some ideas.
+"""
+
 from smolagents import CodeAgent, tool, Tool, LiteLLMModel
 from deepengineer.webcrawler.pdf_utils import get_markdown_by_page_numbers, get_table_of_contents_per_page_markdown, find_in_markdown, convert_ocr_response_to_markdown
 from mistralai import OCRResponse
