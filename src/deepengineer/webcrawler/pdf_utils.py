@@ -7,7 +7,7 @@ from mistralai import Mistral
 import os
 from litellm import completion
 
-from mistralai.models import OCRResponse, OCRPageObject
+from mistralai.models import OCRResponse, OCRPageObject, OCRUsageInfo
 import yaml
 from tenacity import retry, stop_after_attempt, wait_fixed, RetryError
 from litellm.exceptions import BadRequestError
@@ -106,9 +106,10 @@ def get_table_of_contents_per_page_markdown(markdown: OCRResponse) -> str:
     return table_of_contents
 
 def convert_raw_markdown_to_ocr_response(raw_markdown: str) -> OCRResponse:
-    # split by big title starting with # and then a space
-    pages = raw_markdown.split("\n# ")
-    return OCRResponse(pages=[OCRPageObject(markdown="# " + page, page_number=i) for i, page in enumerate(pages)])
+    pages = raw_markdown.split("# ")
+    usage_info_empty = OCRUsageInfo(pages_processed=0)
+    return OCRResponse(pages=[OCRPageObject(index=i, markdown="# " + page, images=[], dimensions=None) for i, page in enumerate(pages)], usage_info=usage_info_empty, model="",)
+
 
 
 
