@@ -35,7 +35,3 @@ deepengineer = "deepengineer:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.uv.sources]
-smolagents = { path = "./smolagents", editable = true }
-
