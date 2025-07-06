@@ -1,61 +1,39 @@
-from smolagents import CodeAgent, Tool, LiteLLMModel
+from smolagents import CodeAgent, Tool, LiteLLMModel, tool
 from deepengineer.webcrawler.async_search import (
-    linkup_search_async, tavily_search_async, arxiv_search_async, 
+    linkup_search_async, arxiv_search_async, 
     pubmed_search_async, scientific_search_async,
-)
-from deepengineer.webcrawler.async_crawl import (
-    crawl4ai_extract_markdown_of_url_async, arxiv_download_pdf_async, download_pdf_async
 )
 from deepengineer.webcrawler.pdf_utils import get_table_of_contents_per_page_markdown, convert_ocr_response_to_markdown, get_markdown_by_page_numbers, find_in_markdown
 from mistralai import OCRResponse
 from enum import Enum
-from pathlib import Path
 import asyncio
-from typing import Literal
-from deepengineer.webcrawler.utils import sanitize_filename
-from deepengineer.common_path import DATA_DIR
-from deepengineer.webcrawler.async_search import SearchResult
+from deepengineer.webcrawler.async_search import SearchResponse
 
-class DataBase():
-    def __init__(self):
-        self.storage_path = DATA_DIR
-        self.storage_path.mkdir(exist_ok=True, parents=True)
-        self.sources = dict[str, SearchResult]
-        
-    def add_sources(self, sources: list[SearchResult]):
-        for source in sources:
-            self.sources[source.url] = source
-        
-    def get_sources_by_url(self, url: str) -> SearchResult:
-        return self.sources[url]
-    
-    
 
 class ToolNames(Enum):
     # Search tools
-    TAVILY_SEARCH = "tavily_search"
-    LINKUP_SEARCH = "linkup_search"
+    SEARCH_TOOL = "web search tool"
     ARXIV_SEARCH = "arxiv_search"
     PUBMED_SEARCH = "pubmed_search"
     SCIENCEDIRECT_SEARCH = "sciencedirect_search"
     SCIENTIFIC_SEARCH = "scientific_search"
-
-    # Crawling tools
-    CRAWL_URL = "crawl_url"
-    DOWNLOAD_PDF = "download_pdf"
-    ARXIV_DOWNLOAD_PDF = "arxiv_download_pdf"
     
-    # PDF analysis tools (reusing from markdown agent)
-    GET_TABLE_OF_CONTENTS = "get_table_of_contents"
-    GET_MARKDOWN = "get_markdown"
+    # Exploring link tools
+    GET_TABLE_OF_CONTENTS = "get_table_of_contents_of_url"
+    GET_MARKDOWN = "get_markdown_of_url"
     GET_PAGES_CONTENT = "get_pages_content"
     FIND_IN_MARKDOWN = "find_in_markdown"
 
+def filter_search_results(search_response: SearchResponse, max_nb_results: int = 10) -> SearchResponse:
+    search_response.search_results = search_response.search_results[:max_nb_results]
+    return search_response
+
 
 class SearchTool(Tool):
-    provider: Literal["tavily", "linkup"]
-    name = ToolNames.LINKUP_SEARCH.value
-    description = "Search the web using Linkup API. Good for deep research with sourced answers."
+    name = ToolNames.SEARCH_TOOL.value
+    description = f"""Search the web using Linkup API. Good for deep research with sourced answers.
+    Linkup also provides an answer. This answer is not always correct, so you might want to check the sources.
+    """
     inputs = {
         "search_query": {
             "type": "string",
@@ -63,19 +41,19 @@ class SearchTool(Tool):
         },
     }
     output_type = "object"
+    max_nb_results = 10
     
-    def forward(self, search_query: str, depth: str = "standard", 
-                output_type: str = "sourcedAnswer") -> dict:
+    def forward(self, search_query: str) -> SearchResponse:
         result = asyncio.run(linkup_search_async(
             search_query=search_query,
-            depth=depth,
-            output_type=output_type
         ))
-        return result.model_dump()
+        return filter_search_results(result, SearchTool.max_nb_results)
 
 class ArxivSearchTool(Tool):
     name = ToolNames.ARXIV_SEARCH.value
-    description = "Search arXiv for academic papers and preprints."
+    description = """Search arXiv for academic papers and preprints with Linkup API.
+    Linkup also provides an answer. This answer is not always correct, so you might want to check the sources.
+    """
     inputs = {
         "search_query": {
             "type": "string",
@@ -84,13 +62,15 @@ class ArxivSearchTool(Tool):
     }
     output_type = "object"
     
-    def forward(self, search_query: str) -> dict:
+    def forward(self, search_query: str) -> SearchResponse:
         result = asyncio.run(arxiv_search_async(search_query))
-        return result.model_dump()
+        return filter_search_results(result, ArxivSearchTool.max_nb_results)
 
 class PubmedSearchTool(Tool):
     name = ToolNames.PUBMED_SEARCH.value
-    description = "Search PubMed for medical and scientific literature."
+    description = """Search PubMed for medical and scientific literature with Linkup API.
+    Linkup also provides an answer. This answer is not always correct, so you might want to check the sources.
+    """
     inputs = {
         "search_query": {
             "type": "string",
@@ -99,13 +79,15 @@ class PubmedSearchTool(Tool):
     }
     output_type = "object"
     
-    def forward(self, search_query: str) -> dict:
+    def forward(self, search_query: str) -> SearchResponse:
         result = asyncio.run(pubmed_search_async(search_query))
-        return result.model_dump()
+        return filter_search_results(result, PubmedSearchTool.max_nb_results)
 
 class ScientificSearchTool(Tool):
     name = ToolNames.SCIENTIFIC_SEARCH.value
-    description = "Search across multiple scientific domains: Wikipedia, arXiv, PubMed, and ScienceDirect."
+    description = """Search across multiple scientific domains: Wikipedia, arXiv, PubMed, and ScienceDirect.
+    Linkup also provides an answer. This answer is not always correct, so you might want to check the sources.
+    """
     inputs = {
         "search_query": {
             "type": "string",
@@ -118,85 +100,19 @@ class ScientificSearchTool(Tool):
         result = asyncio.run(scientific_search_async(search_query))
         return result.model_dump()
 
-class CrawlUrlTool(Tool):
-    name = ToolNames.CRAWL_URL.value
-    description = "Extract markdown content from a URL using crawl4ai."
-    inputs = {
-        "url": {
-            "type": "string",
-            "description": "The URL to crawl and extract markdown from"
-        }
-    }
-    output_type = "string"
-    
-    def forward(self, url: str) -> str:
-        return asyncio.run(crawl4ai_extract_markdown_of_url_async(url))
+URL_EXPLAINATION = """The URL can be be converted to a markdown. If the URL points to a PDF, the pdf is converted to markdown, otherwise the URL is crawled and the markdown is extracted. This markdown is split into pages that are numbered. You can use the page numbers to get the content of the pages."""
 
-class DownloadPdfTool(Tool):
-    name = ToolNames.DOWNLOAD_PDF.value
-    description = "Download a PDF file from a URL and store it in the data directory."
-    inputs = {
-        "url": {
-            "type": "string",
-            "description": "The URL of the PDF to download"
-        },
-        "filename": {
-            "type": "string",
-            "description": "The filename to save the PDF as (without .pdf extension)"
-        }
-    }
-    output_type = "string"
-    
-    def forward(self, url: str, filename: str) -> str:
-        # Create data directory if it doesn't exist
-        data_dir = Path("data")
-        data_dir.mkdir(exist_ok=True)
-        
-        # Create PDFs subdirectory
-        pdfs_dir = data_dir / "pdfs"
-        pdfs_dir.mkdir(exist_ok=True)
-        
-        output_path = pdfs_dir / f"{filename}.pdf"
-        
-        # Download the PDF
-        result_path = asyncio.run(download_pdf_async(url, output_path))
-        return f"PDF downloaded successfully to: {result_path}"
-
-class ArxivDownloadPdfTool(Tool):
-    name = ToolNames.ARXIV_DOWNLOAD_PDF.value
-    description = "Download a PDF from arXiv by converting the abstract URL to PDF URL."
-    inputs = {
-        "url": {
-            "type": "string",
-            "description": "The arXiv abstract URL (e.g., https://arxiv.org/abs/1234.5678)"
-        },
-        "filename": {
-            "type": "string",
-            "description": "The filename to save the PDF as (without .pdf extension)"
-        }
-    }
-    output_type = "string"
-    
-    def forward(self, url: str, filename: str) -> str:
-        # Create data directory if it doesn't exist
-        data_dir = Path("data")
-        data_dir.mkdir(exist_ok=True)
-        
-        # Create PDFs subdirectory
-        pdfs_dir = data_dir / "pdfs"
-        pdfs_dir.mkdir(exist_ok=True)
-        
-        output_path = pdfs_dir / f"{filename}.pdf"
-        
-        # Download the PDF
-        result_path = asyncio.run(arxiv_download_pdf_async(url, output_path))
-        return f"arXiv PDF downloaded successfully to: {result_path}"
-
-# Reuse the markdown analysis tools from analyse_markdown_agent.py
 class GetTableOfContentsTool(Tool):
     name = ToolNames.GET_TABLE_OF_CONTENTS.value
-    description = "Returns all of the titles in the document along with the page number they are on."
-    inputs = {}
+    description = f"""Returns all of the titles in the document along with the page number they are on.
+    {URL_EXPLAINATION}
+    """
+    inputs = {
+        "url": {
+            "type": "string",
+            "description": "The URL to get the table of contents of."
+        }
+    }
     output_type = "string"
     
     def __init__(self, markdown: OCRResponse):
@@ -204,7 +120,7 @@ class GetTableOfContentsTool(Tool):
         self.markdown: OCRResponse = markdown
         self.table_of_contents: str = get_table_of_contents_per_page_markdown(self.markdown)
         
-    def forward(self) -> str:
+    def forward(self, url: str) -> str:
         return self.table_of_contents
 
 class GetMarkdownTool(Tool):
