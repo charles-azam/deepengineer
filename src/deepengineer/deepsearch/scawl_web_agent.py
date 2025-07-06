@@ -1,4 +1,4 @@
-from smolagents import CodeAgent, Tool, LiteLLMModel, tool
+from smolagents import CodeAgent, Tool, LiteLLMModel, tool, ToolCallingAgent
 from deepengineer.webcrawler.async_search import (
     linkup_search_async, arxiv_search_async, 
     pubmed_search_async, scientific_search_async,
@@ -8,7 +8,7 @@ from mistralai import OCRResponse
 from enum import Enum
 import asyncio
 from deepengineer.webcrawler.async_search import SearchResponse
-
+from deepengineer.webcrawler.crawl_database import DataBase
 
 class ToolNames(Enum):
     # Search tools
@@ -115,32 +115,43 @@ class GetTableOfContentsTool(Tool):
     }
     output_type = "string"
     
-    def __init__(self, markdown: OCRResponse):
+    def __init__(self, database: DataBase):
         super().__init__()
-        self.markdown: OCRResponse = markdown
-        self.table_of_contents: str = get_table_of_contents_per_page_markdown(self.markdown)
+        self.database: DataBase = database
         
     def forward(self, url: str) -> str:
-        return self.table_of_contents
+        markdown = self.database.get_markdown_of_url(url)
+        table_of_contents: str = get_table_of_contents_per_page_markdown(markdown)
+        return table_of_contents
 
 class GetMarkdownTool(Tool):
     name = ToolNames.GET_MARKDOWN.value
-    description = f"Returns the markdown entire content of the document. Beware this might be too long to be useful, except for small documents, use {ToolNames.GET_PAGES_CONTENT.value} instead. You can use {ToolNames.GET_TABLE_OF_CONTENTS.value} to get the table of contents of the document including the number of pages."
-    inputs = {}
+    description = f"Returns in markdown entire content of the url. Beware this might be too long to be useful, except for small documents, use {ToolNames.GET_PAGES_CONTENT.value} instead. You can also use {ToolNames.GET_TABLE_OF_CONTENTS.value} first to get the table of contents of the document including the number of pages."
+    inputs = {
+        "url": {
+            "type": "string",
+            "description": "The URL to get the markdown of."
+        }
+    }
     output_type = "string"
     
-    def __init__(self, markdown: OCRResponse):
+    def __init__(self, database: DataBase):
         super().__init__()
-        self.markdown: OCRResponse = markdown
-        self.markdown_content: str = convert_ocr_response_to_markdown(self.markdown)
+        self.database: DataBase = database
         
-    def forward(self) -> str:
-        return self.markdown_content
+    def forward(self, url: str) -> str:
+        markdown = self.database.get_markdown_of_url(url)
+        markdown_content: str = convert_ocr_response_to_markdown(markdown)
+        return markdown_content
 
 class GetPagesContentTool(Tool):
     name = ToolNames.GET_PAGES_CONTENT.value
-    description = f"Returns the content of the pages. You can use {ToolNames.GET_TABLE_OF_CONTENTS.value} to get the table of contents of the document including the number of pages. Expects a list of page numbers as integers as input."
+    description = f"Returns the content of the pages. You can use {ToolNames.GET_TABLE_OF_CONTENTS.value} to get the table of contents of the url including the number of pages. Expects a list of page numbers as integers as input. {URL_EXPLAINATION}"
     inputs = {
+        "url": {
+            "type": "string",
+            "description": "The URL to get the content of."
+        },
         "page_numbers": {
             "type": "array",
             "description": "The page numbers to get the content of."
@@ -148,30 +159,36 @@ class GetPagesContentTool(Tool):
     }
     output_type = "string"
     
-    def __init__(self, markdown: OCRResponse):
+    def __init__(self, database: DataBase):
         super().__init__()
-        self.markdown: OCRResponse = markdown
+        self.database: DataBase = database
 
-    def forward(self, page_numbers: list[int]) -> str:
-        return get_markdown_by_page_numbers(self.markdown, page_numbers)
+    def forward(self, url: str, page_numbers: list[int]) -> str:
+        markdown = self.database.get_markdown_of_url(url)
+        return get_markdown_by_page_numbers(markdown, page_numbers)
 
 class FindInMarkdownTool(Tool):
     name = ToolNames.FIND_IN_MARKDOWN.value
-    description = f"Finds the page numbers of the document that contain the search queries. If you are looking for a specific information, you can use this tool to find the page numbers of the document that contain the information and then use {ToolNames.GET_PAGES_CONTENT.value} to get the content of the pages."
+    description = f"Finds the page numbers of the url that contain the search queries. If you are looking for a specific information, you can use this tool to find the page numbers of the url that contain the information and then use {ToolNames.GET_PAGES_CONTENT.value} to get the content of the pages. {URL_EXPLAINATION}"
     inputs = {
+        "url": {
+            "type": "string",
+            "description": "The URL to find in."
+        },
         "search_queries": {
             "type": "array",
-            "description": "The search queries to find in the document. List of strings."
+            "description": "The search queries to find in the url. List of strings."
         }
     }
     output_type = "array"
     
-    def __init__(self, markdown: OCRResponse):
+    def __init__(self, database: DataBase):
         super().__init__()
-        self.markdown: OCRResponse = markdown
+        self.database: DataBase = database
     
-    def forward(self, search_queries: list[str]) -> list[int]:
-        return find_in_markdown(self.markdown, search_queries)
+    def forward(self, url: str, search_queries: list[str]) -> list[int]:
+        markdown = self.database.get_markdown_of_url(url)
+        return find_in_markdown(markdown, search_queries)
 
 def create_web_search_agent(model_id="deepseek/deepseek-chat"):
     """Create a web search agent with search, crawling, and PDF analysis capabilities."""
@@ -180,17 +197,17 @@ def create_web_search_agent(model_id="deepseek/deepseek-chat"):
 
     # Web search and crawling tools
     WEB_SEARCH_TOOLS = [
-        TavilySearchTool(),
-        LinkupSearchTool(),
+        SearchTool(),
         ArxivSearchTool(),
         PubmedSearchTool(),
         ScientificSearchTool(),
-        CrawlUrlTool(),
-        DownloadPdfTool(),
-        ArxivDownloadPdfTool(),
+        GetTableOfContentsTool(),
+        GetMarkdownTool(),
+        GetPagesContentTool(),
+        FindInMarkdownTool(),
     ]
     
-    web_search_agent = CodeAgent(
+    web_search_agent = ToolCallingAgent(
         model=model,
         tools=WEB_SEARCH_TOOLS,
         max_steps=20,
@@ -200,58 +217,4 @@ def create_web_search_agent(model_id="deepseek/deepseek-chat"):
         description="""A team member that can search the web, crawl URLs, download PDFs, and analyze documents.""",
     )
     
-    web_search_agent.prompt_templates["managed_agent"]["task"] += """
-    You can search the web using various APIs (Tavily, Linkup, arXiv, PubMed, ScienceDirect).
-    You can crawl URLs to extract markdown content.
-    You can download PDFs from URLs or arXiv and store them in the data/pdfs directory.
-    For PDF analysis, you'll need to first download the PDF and then use the markdown analysis tools.
-    """
-
-    return web_search_agent
-
-def create_web_search_agent_with_pdf_analysis(markdown: OCRResponse, model_id="deepseek/deepseek-chat"):
-    """Create a web search agent that also includes PDF analysis capabilities."""
-    
-    model = LiteLLMModel(model_id=model_id)
-
-    # Web search and crawling tools
-    WEB_SEARCH_TOOLS = [
-        TavilySearchTool(),
-        LinkupSearchTool(),
-        ArxivSearchTool(),
-        PubmedSearchTool(),
-        ScientificSearchTool(),
-        CrawlUrlTool(),
-        DownloadPdfTool(),
-        ArxivDownloadPdfTool(),
-    ]
-    
-    # PDF analysis tools (if markdown is provided)
-    PDF_ANALYSIS_TOOLS = [
-        GetTableOfContentsTool(markdown),
-        GetMarkdownTool(markdown),
-        GetPagesContentTool(markdown),
-        FindInMarkdownTool(markdown),
-    ]
-    
-    all_tools = WEB_SEARCH_TOOLS + PDF_ANALYSIS_TOOLS
-    
-    web_search_agent = CodeAgent(
-        model=model,
-        tools=all_tools,
-        max_steps=20,
-        verbosity_level=2,
-        planning_interval=4,
-        name="web_search_agent_with_pdf_analysis",
-        description="""A team member that can search the web, crawl URLs, download PDFs, and analyze the provided PDF document.""",
-        additional_authorized_imports=["numpy", "matplotlib", "scipy", "sympy", "pandas", ],
-    )
-    
-    web_search_agent.prompt_templates["managed_agent"]["task"] += """
-    You can search the web using various APIs (Linkup, arXiv, PubMed, ScienceDirect).
-    You can crawl URLs to extract markdown content.
-    You can download PDFs from URLs or arXiv and store them in the data/pdfs directory.
-    You can analyze the provided PDF document using the markdown analysis tools.
-    """
-
     return web_search_agent
