@@ -1,10 +1,17 @@
-from deepengineer.webcrawler.pdf_utils import convert_pdf_to_markdown_async, convert_ocr_response_to_markdown, find_in_markdown, get_table_of_contents_per_page_markdown, get_markdown_by_page_numbers
-from mistralai import OCRResponse
-from deepengineer.common_path import DATA_DIR
 import pytest
+from deepengineer.common_path import DATA_DIR
+from deepengineer.webcrawler.pdf_utils import (
+    convert_ocr_response_to_markdown,
+    convert_pdf_to_markdown_async,
+    find_in_markdown,
+    get_markdown_by_page_numbers,
+    get_table_of_contents_per_page_markdown,
+)
+from mistralai import OCRResponse
+
 
 def load_mock_ocr_response() -> OCRResponse:
-    with open(DATA_DIR / "report_thermal_neutron.json", "r") as f:
+    with open(DATA_DIR / "report_thermal_neutron.json") as f:
         return OCRResponse.model_validate_json(f.read())
 
 
@@ -18,17 +25,19 @@ async def test_convert_pdf_to_markdown_async():
     assert isinstance(ocr_response, OCRResponse)
     assert len(ocr_response.pages) == 16
     assert "where each cylinder represent" in markdown
-    
+
 
 def test_table_of_contents_per_page_pdf():
     ocr_response = load_mock_ocr_response()
     table_of_contents = get_table_of_contents_per_page_markdown(ocr_response)
     assert "References - Page 15" in table_of_contents
 
+
 def test_find_in_pdf():
     ocr_response = load_mock_ocr_response()
     page_numbers = find_in_markdown(ocr_response, "where each cylinder represent")
     assert page_numbers == [7]
+
 
 def test_get_markdown_by_page_numbers():
     ocr_response = load_mock_ocr_response()

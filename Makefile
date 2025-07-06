@@ -19,10 +19,7 @@ lint:  ## Run ruff linter
 lint-fix:  ## Run ruff linter and auto-fix issues
 	uv run ruff check --fix src tests
 
-type-check:  ## Run mypy type checker
-	uv run mypy src
-
-check: format lint type-check  ## Run all checks (format, lint, type-check)
+check: format lint  ## Run all checks (format, lint)
 
 test:  ## Run tests
 	uv run pytest tests

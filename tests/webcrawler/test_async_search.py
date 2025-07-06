@@ -1,28 +1,25 @@
-import asyncio
+import numpy as np
 import pytest
 from deepengineer.webcrawler.async_search import (
-    tavily_search_async,
     SearchResponse,
+    arxiv_search_async,
+    get_linkup_balance,
     get_tavily_usage,
     linkup_search_async,
-    get_linkup_balance,
-    arxiv_search_async
+    tavily_search_async,
 )
-import numpy as np
 
 
 @pytest.mark.expensive
 @pytest.mark.asyncio
 async def test_tavily_search_async():
-    
     usage_before = get_tavily_usage()
     print(usage_before)
-    
 
     response = await tavily_search_async(
         search_query="Would it be possible to make a thermal reactor with graphite and lead?",
     )
-    
+
     print(response.answer)
     assert response is not None
     assert isinstance(response, SearchResponse)
@@ -43,10 +40,10 @@ async def test_tavily_search_async():
     print(usage_after)
     assert usage_after == usage_before + 1
 
+
 @pytest.mark.expensive
 @pytest.mark.asyncio
 async def test_linkup_search_async():
-    
     balance_before = get_linkup_balance()
     print(balance_before)
 
@@ -69,7 +66,8 @@ async def test_linkup_search_async():
     balance_after = get_linkup_balance()
     print(balance_after)
     assert np.isclose(balance_after, balance_before - 0.005)
-    
+
+
 @pytest.mark.expensive
 @pytest.mark.asyncio
 async def test_arxiv_search_async():
@@ -78,22 +76,17 @@ async def test_arxiv_search_async():
     response = await arxiv_search_async(
         search_query="Would it be possible to make a thermal reactor with graphite and lead?",
     )
-    
+
     assert response is not None
     assert isinstance(response, SearchResponse)
     assert response.query is not None
     assert response.answer is not None
     assert response.search_results is not None
     assert len(response.search_results) >= 10
-    assert any(result.url.startswith("https://arxiv.org/abs/") for result in response.search_results)
+    assert any(
+        result.url.startswith("https://arxiv.org/abs/")
+        for result in response.search_results
+    )
 
     balance_after = get_linkup_balance()
     assert np.isclose(balance_after, balance_before - 0.005)
-    
-    
-    
-    
-    
-    
-    
-    
