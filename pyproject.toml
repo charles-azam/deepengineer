@@ -16,6 +16,7 @@ dependencies = [
     "linkup-sdk>=0.2.8",
     "tavily-python>=0.7.9",
     "pypdf>=5.7.0",
+    "pytest-playwright>=0.7.0",
 ]
 
 [project.scripts]
