@@ -29,7 +29,6 @@ def test_pdf_agent():
     FindInMarkdownTool(ocr_response).forward(["thermal neutron", "neutron"])
 
 
-@pytest.mark.skip(reason="This test is too expensive to run on CI")
 def test_run_pdf_agent():
     ocr_response = load_mock_ocr_response()
     pdf_agent = create_agent(ocr_response)
