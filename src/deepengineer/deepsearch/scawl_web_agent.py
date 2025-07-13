@@ -231,7 +231,11 @@ def create_web_search_agent(
         verbosity_level=2,
         planning_interval=4,
         name="web_search_agent",
-        description="""A team member that can search the web, crawl URLs, download PDFs, and analyze documents.""",
+        description="""A team member that will search the internet to answer your question.
+    Ask him for all your questions that require browsing the web. It can also search arXiv, PubMed, and ScienceDirect, download the documents and extract the relevant information.
+    Provide him as much context as possible, especially if you need to search on a specific website!
+    And don't hesitate to provide him with a complex search task.
+    Your request must be a real sentence, not a google search! Like "Find me this information (...)" rather than a few keywords.""",
     )
 
     return web_search_agent
