@@ -203,11 +203,14 @@ class FindInMarkdownTool(Tool):
         return find_in_markdown(markdown, search_queries)
 
 
-def create_web_search_agent(model_id="deepseek/deepseek-chat"):
+def create_web_search_agent(
+    model_id="deepseek/deepseek-reasoner", database: DataBase | None = None
+):
     """Create a web search agent with search, crawling, and PDF analysis capabilities."""
 
     model = LiteLLMModel(model_id=model_id)
-    database = DataBase()
+    if database is None:
+        database = DataBase()
 
     # Web search and crawling tools
     WEB_SEARCH_TOOLS = [

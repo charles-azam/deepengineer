@@ -13,9 +13,10 @@ from PIL import Image
 from smolagents import CodeAgent, LiteLLMModel
 from smolagents.agents import ActionStep
 from smolagents import tool, Tool
+from deepengineer.webcrawler.crawl_database import DataBase
 
 
-def save_fig(image_path: Path = Path("figure.png")) -> str:
+def _find_and_save_matplotlib_figure(image_path: Path = Path("figure.png")) -> str:
     """Save the current matplotlib figure to *path*.
     Save fig takes no arguments. The output path is hardcoded to "figure.png".
     """
@@ -48,7 +49,7 @@ class SaveMatplotlibFigTool(Tool):
             image_name = image_name + ".png"
         output_path = self.output_dir / image_name
         output_path.unlink(missing_ok=True)
-        save_fig(output_path)
+        _find_and_save_matplotlib_figure(output_path)
         if output_path.exists():
             return f"![]({image_name})"
         else:
@@ -58,7 +59,7 @@ class SaveMatplotlibFigTool(Tool):
 def _capture_snapshot(
     memory_step: ActionStep, agent: CodeAgent, image_path: Path = Path("figure.png")
 ) -> None:
-    save_fig(image_path)
+    _find_and_save_matplotlib_figure(image_path)
     if not plt.get_fignums():
         return
 
@@ -116,7 +117,7 @@ User instructions:
 """
 
 
-def draw_image_agent(
+def draw_matplotlib_image_from_prompt(
     prompt: str,
     image_path: str = Path("figure.png"),
     model_id: str = "mistral/mistral-medium-latest",
@@ -174,7 +175,9 @@ class DrawImageTool(Tool):
     def forward(self, prompt: str, image_name: str) -> str:
         if not image_name.endswith(".png"):
             image_name = image_name + ".png"
-        output_path = draw_image_agent(prompt, self.output_dir / image_name)
+        output_path = draw_matplotlib_image_from_prompt(
+            prompt, self.output_dir / image_name
+        )
         if output_path.exists():
             return f"![]({image_name})"
         else:

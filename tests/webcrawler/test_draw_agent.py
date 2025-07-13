@@ -1,6 +1,6 @@
 import pytest
 from deepengineer.deepsearch.draw_agent import (
-    draw_image_agent,
+    draw_matplotlib_image_from_prompt,
     multiple_steps_draw_image_agent,
     SaveMatplotlibFigTool,
 )
@@ -14,7 +14,9 @@ def test_draw_image_agent():
     prompt = """Propose moi un schéma très détaillé d'un réacteur nucléaire hélium graphite."""
     output_path = Path(DATA_DIR) / "figure.png"
     output_path.unlink(missing_ok=True)
-    output_path = draw_image_agent(prompt, output_path, multiple_steps=False)
+    output_path = draw_matplotlib_image_from_prompt(
+        prompt, output_path, multiple_steps=False
+    )
     assert output_path.exists()
 
 
@@ -39,9 +41,6 @@ def test_save_matplotlib_fig_tool():
               """
     )
     assert (Path(DATA_DIR) / "figure.png").exists()
-
-
-test_save_matplotlib_fig_tool()
 
 
 @pytest.mark.skip(reason="This function is not working yet")
