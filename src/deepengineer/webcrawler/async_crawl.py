@@ -6,7 +6,6 @@ import httpx
 import pytest
 
 
-@pytest.mark.skip(reason="Playwright is not installed on CI")
 async def crawl4ai_extract_markdown_of_url_async(url: str) -> str:
     """Extract markdown content from a URL using crawl4ai."""
     async with crawl4ai.AsyncWebCrawler() as crawler:
