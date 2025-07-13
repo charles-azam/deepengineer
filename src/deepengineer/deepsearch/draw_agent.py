@@ -12,8 +12,7 @@ from PIL import Image
 
 from smolagents import CodeAgent, LiteLLMModel
 from smolagents.agents import ActionStep
-
-import base64, mimetypes
+from smolagents import tool, Tool
 
 
 def save_fig(image_path: Path = Path("figure.png")) -> str:
@@ -26,6 +25,34 @@ def save_fig(image_path: Path = Path("figure.png")) -> str:
         )
     plt.savefig(image_path, bbox_inches="tight")
     return f"Figure saved to {image_path}."
+
+
+class SaveMatplotlibFigTool(Tool):
+    name = "save_matplotlib_fig"
+    description = """Save the current matplotlib figure to the current directory. Then plt.close() is called to clear the figure. The image is returned as a markdown string, use this markdown inside the final answer to include the image.
+    """
+    inputs = {
+        "image_name": {
+            "type": "string",
+            "description": "The name of the image to save.",
+        },
+    }
+    output_type = "string"
+
+    def __init__(self, output_dir: Path):
+        super().__init__()
+        self.output_dir: Path = output_dir
+
+    def forward(self, image_name: str) -> str:
+        if not image_name.endswith(".png"):
+            image_name = image_name + ".png"
+        output_path = self.output_dir / image_name
+        output_path.unlink(missing_ok=True)
+        save_fig(output_path)
+        if output_path.exists():
+            return f"![]({image_name})"
+        else:
+            return f"Error: The image {image_name} was not saved."
 
 
 def _capture_snapshot(
@@ -59,7 +86,7 @@ def _capture_snapshot(
 
 
 matplotlib_instructions_multiple_steps = r"""
-You may use the entire **matplotlib** and **numpy** API. Do not worry about saving the image, it is done automatically and you can't access the os library.
+You may use the entire **matplotlib** and **numpy** and **pandas** and **seaborn** API. Do not worry about saving the image, it is done automatically and you can't access the os library.
 
 Between each step, the image is provided in memory. From step 2, you can use it to pass additional instructions to the model to improve the image.
 
@@ -75,7 +102,7 @@ User instructions:
 """
 
 matplotlib_instructions_single_step = r"""
-You may use the entire **matplotlib** and **numpy** API. Do not worry about saving the image, it is done automatically and you can't access the os library.
+You may use the entire **matplotlib** and **numpy** and **pandas** and **seaborn** API. Do not worry about saving the image, it is done automatically and you can't access the os library.
 
 Workflow
 --------
@@ -99,7 +126,12 @@ def draw_image_agent(
     agent = CodeAgent(
         tools=[],
         model=model,
-        additional_authorized_imports=["matplotlib.*", "numpy.*"],
+        additional_authorized_imports=[
+            "matplotlib.*",
+            "numpy.*",
+            "pandas.*",
+            "seaborn.*",
+        ],
         step_callbacks=[
             lambda memory_step, agent: _capture_snapshot(memory_step, agent, image_path)
         ],
@@ -113,6 +145,40 @@ def draw_image_agent(
     else:
         agent.run(matplotlib_instructions_single_step.format(user_instructions=prompt))
     return image_path
+
+
+class DrawImageTool(Tool):
+    name = "draw_image"
+    description = f"Draw an image based on a prompt. The image is saved in the current directory. The image is returned as a markdown image, use this markdown inside the final answer to include the image. You must be very specific in your prompt."
+    inputs = {
+        "prompt": {
+            "type": "string",
+            "description": """
+    Draw an image based on a prompt. The image is saved in the current directory. The image is returned as a markdown image, use this markdown inside the final answer to include the image. 
+    
+    You must be very specific in your prompt. This tool has access to matplotlib, numpy, pandas, seaborn.
+                   
+                   """,
+        },
+        "image_name": {
+            "type": "string",
+            "description": "The name of the image to save.",
+        },
+    }
+    output_type = "string"
+
+    def __init__(self, output_dir: Path):
+        super().__init__()
+        self.output_dir: Path = output_dir
+
+    def forward(self, prompt: str, image_name: str) -> str:
+        if not image_name.endswith(".png"):
+            image_name = image_name + ".png"
+        output_path = draw_image_agent(prompt, self.output_dir / image_name)
+        if output_path.exists():
+            return f"![]({image_name})"
+        else:
+            return f"Error: The image {image_name} was not saved."
 
 
 def multiple_steps_draw_image_agent(

@@ -11,7 +11,10 @@ def test_run_web_search_agent():
     agent = create_web_search_agent()
     assert (
         agent.run(
-            "Est il possible de faire un réacteur thermique avec du graphite et du plomb?"
+            'Search a paper called "High Energy Physics Opportunities Using Reactor Antineutrinos" on arXiv, download it and extract the table of contents'
         )
         is not None
     )
+
+
+test_run_web_search_agent()
