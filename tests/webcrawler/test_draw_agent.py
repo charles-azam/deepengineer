@@ -1,5 +1,8 @@
 import pytest
-from deepengineer.deepsearch.draw_agent import draw_image_agent, run_agent_step_by_step
+from deepengineer.deepsearch.draw_agent import (
+    draw_image_agent,
+    multiple_steps_draw_image_agent,
+)
 from deepengineer.common_path import DATA_DIR
 from pathlib import Path
 
@@ -18,5 +21,5 @@ def test_run_agent_step_by_step():
     prompt = """Propose moi un schéma très détaillé d'un réacteur nucléaire hélium graphite."""
     output_path = Path(DATA_DIR) / "figure.png"
     output_path.unlink(missing_ok=True)
-    output_path = run_agent_step_by_step(prompt, output_path)
+    output_path = multiple_steps_draw_image_agent(prompt, output_path)
     assert output_path.exists()

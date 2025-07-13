@@ -6,7 +6,7 @@ def test_create_web_search_agent():
     create_web_search_agent()
 
 
-@pytest.mark.skip(reason="This test is too expensive to run on CI")
+@pytest.mark.skip(reason="This test is very long to run")
 def test_run_web_search_agent():
     agent = create_web_search_agent()
     assert (
