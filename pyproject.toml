@@ -17,6 +17,7 @@ dependencies = [
     "tavily-python>=0.7.9",
     "pypdf>=5.7.0",
     "pytest-playwright>=0.7.0",
+    "matplotlib>=3.10.3",
 ]
 
 [project.scripts]
