@@ -1,3 +1,12 @@
+---
+title: deepdraft
+emoji: 🚀
+colorFrom: blue
+colorTo: pink
+sdk: docker
+pinned: false
+---
+
 # DeepEngineer 🔬
 
 > A deep search agentic system for scientific and engineering workflows
