@@ -1,13 +1,25 @@
-FROM python:3.13
+FROM unclecode/crawl4ai:latest
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      curl ca-certificates
+
+# Install UV as root
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+RUN sh /uv-installer.sh && rm /uv-installer.sh
+
+# On met root et user
 RUN useradd -m -u 1000 user
-USER user
-ENV PATH="/home/user/.local/bin:$PATH"
 
+# On expose les deux .local/bin — racine et utilisateur
+ENV PATH="/root/.local/bin:/home/user/.local/bin:$PATH"
+
+USER user
 WORKDIR /app
 
-COPY --chown=user ./requirements.txt requirements.txt
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
+COPY --chown=user ./pyproject.toml pyproject.toml
+RUN uv sync .
 
 COPY --chown=user . /app
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
+
+# Run the application
+CMD ["uvicorn", "deepengineer.backend.entry_point:app", "--host", "0.0.0.0", "--port", "7860"]
