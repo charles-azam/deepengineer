@@ -19,3 +19,8 @@ async def run_agent(request: AgentRequest):
     # Run the agent synchronously in a background thread
     result = await anyio.to_thread.run_sync(main_search, task)
     return JSONResponse(content={"result": result})
+
+
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}

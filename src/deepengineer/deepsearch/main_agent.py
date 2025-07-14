@@ -113,7 +113,6 @@ def create_main_search_agent(
     WEB_SEARCH_TOOLS = [
         SearchTool(),
         ArxivSearchTool(),
-        PubmedSearchTool(),
         ScientificSearchTool(),
         GetTableOfContentsTool(database),
         GetMarkdownTool(database),
@@ -127,6 +126,14 @@ def create_main_search_agent(
         tools=WEB_SEARCH_TOOLS,
         max_steps=20,
         verbosity_level=2,
+        additional_authorized_imports=[
+            "matplotlib.*",
+            "numpy.*",
+            "pandas.*",
+            "seaborn.*",
+            "scipy.*",
+            "sympy.*",
+        ],
     )
     return search_agent
 
@@ -157,9 +164,9 @@ Failure or 'I cannot answer' or 'None found' will not be tolerated, success will
 Run verification steps if that's needed, you must make sure you find the correct answer! Here is the task:
 {task}
 """
-    agent = create_main_search_agent()
+    agent = create_main_search_agent(model_id="mistral/mistral-medium-latest")
     answer = agent.run(MAIN_PROMPT.format(task=task))
-    print(answer)
+    return answer
 
 
 if __name__ == "__main__":
