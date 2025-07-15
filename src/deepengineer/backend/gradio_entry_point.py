@@ -2,33 +2,39 @@ import gradio as gr
 import threading, time, queue, logging
 
 # ---------- 1.  A thread‑safe queue for log messages ----------
-log_queue = queue.Queue()
 
-def push_log(msg: str):
-    """Helper so tools can push log lines."""
-    log_queue.put(msg)
+    
+class _BaseTool:
+    def __init__(self, log_queue: queue.Queue):
+        self.log_queue = log_queue
+
+    def push_log(self, msg: str):
+        self.log_queue.put(msg)
+
+    def forward(self, input: str) -> str:
+        raise NotImplementedError("Subclasses must implement forward method")
 
 # ---------- 2.  Tools that report progress ----------
-class SearchTool:
+class SearchTool(_BaseTool):
     def forward(self, query: str) -> str:
-        push_log(f"🔍 SearchTool → {query}")
-        time.sleep(1)                      # expensive work…
+        self.push_log(f"🔍 SearchTool → {query}")
+        time.sleep(2)                      # expensive work…
         out = f"Found {query}"
-        push_log(f"✅ SearchTool done")
+        self.push_log(f"✅ SearchTool done")
         return out
 
-class DrawTool:
+class DrawTool(_BaseTool):
     def forward(self, prompt: str) -> str:
-        push_log(f"🎨 DrawTool → {prompt}")
-        time.sleep(1)
+        self.push_log(f"🎨 DrawTool → {prompt}")
+        time.sleep(2)
         out = f"Drawing {prompt}"
-        push_log(f"✅ DrawTool done")
+        self.push_log(f"✅ DrawTool done")
         return out
 
 # ---------- 3.  Your unchanged agent -------------------------
-def agent(user_input: str) -> str:
-    st, dt = SearchTool(), DrawTool()
-    return st.forward(user_input) + dt.forward(user_input)
+def agent(user_input: str, log_queue: queue.Queue) -> str:
+    st, dt = SearchTool(log_queue), DrawTool(log_queue)
+    return st.forward(user_input) + dt.forward(user_input) + st.forward(user_input) + dt.forward(user_input)
 
 # ---------- 4.  Wrapper that streams -------------------------
 def run_agent_stream(user_input: str):
@@ -40,6 +46,7 @@ def run_agent_stream(user_input: str):
       – finally yields the agent’s answer
     Yields tuples: (agent_output, log_output)
     """
+    log_queue = queue.Queue()
     # empty queue before each run
     while not log_queue.empty():
         log_queue.get_nowait()
@@ -48,7 +55,7 @@ def run_agent_stream(user_input: str):
     done = threading.Event()
 
     def _worker():
-        answer_container["text"] = agent(user_input)
+        answer_container["text"] = agent(user_input, log_queue)
         done.set()
 
     threading.Thread(target=_worker, daemon=True).start()

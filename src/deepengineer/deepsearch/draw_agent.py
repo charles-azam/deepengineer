@@ -12,7 +12,7 @@ from PIL import Image
 
 from smolagents import CodeAgent, LiteLLMModel
 from smolagents.agents import ActionStep
-from smolagents import tool, Tool
+from smolagents import Tool
 from deepengineer.webcrawler.crawl_database import DataBase
 
 
