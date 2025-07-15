@@ -12,8 +12,8 @@ from PIL import Image
 
 from smolagents import CodeAgent, LiteLLMModel
 from smolagents.agents import ActionStep
-from smolagents import Tool
 from deepengineer.webcrawler.crawl_database import DataBase
+from deepengineer.logging_tools import LoggingTool
 
 
 def _find_and_save_matplotlib_figure(image_path: Path = Path("figure.png")) -> str:
@@ -28,7 +28,7 @@ def _find_and_save_matplotlib_figure(image_path: Path = Path("figure.png")) -> s
     return f"Figure saved to {image_path}."
 
 
-class SaveMatplotlibFigTool(Tool):
+class SaveMatplotlibFigTool(LoggingTool):
     name = "save_matplotlib_fig"
     description = """Save the current matplotlib figure to the current directory. Then plt.close() is called to clear the figure. The image is returned as a markdown string, use this markdown inside the final answer to include the image.
     """
@@ -148,7 +148,7 @@ def draw_matplotlib_image_from_prompt(
     return image_path
 
 
-class DrawImageTool(Tool):
+class DrawImageTool(LoggingTool):
     name = "draw_image"
     description = f"Draw an image based on a prompt. The image is saved in the current directory. The image is returned as a markdown image, use this markdown inside the final answer to include the image. You must be very specific in your prompt."
     inputs = {

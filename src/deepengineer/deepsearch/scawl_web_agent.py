@@ -1,7 +1,7 @@
 import asyncio
 from enum import Enum
 
-from smolagents import CodeAgent, LiteLLMModel, Tool
+from smolagents import CodeAgent, LiteLLMModel
 
 from deepengineer.webcrawler.async_search import (
     SearchResponse,
@@ -17,6 +17,7 @@ from deepengineer.webcrawler.pdf_utils import (
     get_markdown_by_page_numbers,
     get_table_of_contents_per_page_markdown,
 )
+from deepengineer.logging_tools import LoggingTool
 
 
 class ToolNames(Enum):
@@ -41,7 +42,7 @@ def filter_search_results(
     return search_response.to_string()
 
 
-class SearchTool(Tool):
+class SearchTool(LoggingTool):
     name = ToolNames.SEARCH_TOOL.value
     description = """Search the web using Linkup API. Good for deep research with sourced answers.
     Linkup also provides an answer. This answer is not always correct, so you might want to check the sources.
@@ -63,7 +64,7 @@ class SearchTool(Tool):
         return filter_search_results(result)
 
 
-class ArxivSearchTool(Tool):
+class ArxivSearchTool(LoggingTool):
     name = ToolNames.ARXIV_SEARCH.value
     description = """Search arXiv for academic papers and preprints with Linkup API.
     Linkup also provides an answer. This answer is not always correct, so you might want to check the sources.
@@ -81,7 +82,7 @@ class ArxivSearchTool(Tool):
         return filter_search_results(result)
 
 
-class PubmedSearchTool(Tool):
+class PubmedSearchTool(LoggingTool):
     name = ToolNames.PUBMED_SEARCH.value
     description = """Search PubMed for medical and scientific literature with Linkup API.
     Linkup also provides an answer. This answer is not always correct, so you might want to check the sources.
@@ -99,7 +100,7 @@ class PubmedSearchTool(Tool):
         return filter_search_results(result)
 
 
-class ScientificSearchTool(Tool):
+class ScientificSearchTool(LoggingTool):
     name = ToolNames.SCIENTIFIC_SEARCH.value
     description = """Search across multiple scientific domains: Wikipedia, arXiv, PubMed, and ScienceDirect.
     Linkup also provides an answer. This answer is not always correct, so you might want to check the sources.
@@ -120,7 +121,7 @@ class ScientificSearchTool(Tool):
 URL_EXPLAINATION = """The URL can be be converted to a markdown. If the URL points to a PDF, the pdf is converted to markdown, otherwise the URL is crawled and the markdown is extracted. This markdown is split into pages that are numbered. You can use the page numbers to get the content of the pages."""
 
 
-class GetTableOfContentsTool(Tool):
+class GetTableOfContentsTool(LoggingTool):
     name = ToolNames.GET_TABLE_OF_CONTENTS.value
     description = f"""Returns all of the titles in the document along with the page number they are on.
     {URL_EXPLAINATION}
@@ -143,7 +144,7 @@ class GetTableOfContentsTool(Tool):
         return table_of_contents
 
 
-class GetMarkdownTool(Tool):
+class GetMarkdownTool(LoggingTool):
     name = ToolNames.GET_MARKDOWN.value
     description = f"Returns in markdown entire content of the url. Beware this might be too long to be useful, except for small documents, use {ToolNames.GET_PAGES_CONTENT.value} instead. You can also use {ToolNames.GET_TABLE_OF_CONTENTS.value} first to get the table of contents of the document including the number of pages."
     inputs = {
@@ -161,7 +162,7 @@ class GetMarkdownTool(Tool):
         return markdown_content
 
 
-class GetPagesContentTool(Tool):
+class GetPagesContentTool(LoggingTool):
     name = ToolNames.GET_PAGES_CONTENT.value
     description = f"Returns the content of the pages. You can use {ToolNames.GET_TABLE_OF_CONTENTS.value} to get the table of contents of the url including the number of pages. Expects a list of page numbers as integers as input. {URL_EXPLAINATION}"
     inputs = {
@@ -182,7 +183,7 @@ class GetPagesContentTool(Tool):
         return get_markdown_by_page_numbers(markdown, page_numbers)
 
 
-class FindInMarkdownTool(Tool):
+class FindInMarkdownTool(LoggingTool):
     name = ToolNames.FIND_IN_MARKDOWN.value
     description = f"Finds the page numbers of the url that contain the search queries. If you are looking for a specific information, you can use this tool to find the page numbers of the url that contain the information and then use {ToolNames.GET_PAGES_CONTENT.value} to get the content of the pages. {URL_EXPLAINATION}"
     inputs = {

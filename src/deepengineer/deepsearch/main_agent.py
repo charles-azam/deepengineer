@@ -15,6 +15,7 @@ from deepengineer.common_path import DATA_DIR
 from smolagents import CodeAgent, LiteLLMModel
 import random
 from pathlib import Path
+import queue
 
 
 def _create_output_image_path():
@@ -97,7 +98,7 @@ Run verification steps if that's needed, you must make sure you find the correct
 
 
 def create_main_search_agent(
-    model_id="deepseek/deepseek-reasoner", database: DataBase | None = None
+    model_id="deepseek/deepseek-reasoner", database: DataBase | None = None, log_queue: queue.Queue | None = None
 ):
     """
     Simple agent that can search the web and answer the question. This is much faster and better for simple questions that do not require deep research.
@@ -111,14 +112,14 @@ def create_main_search_agent(
 
     # Web search and crawling tools
     WEB_SEARCH_TOOLS = [
-        SearchTool(),
-        ArxivSearchTool(),
-        ScientificSearchTool(),
-        GetTableOfContentsTool(database),
-        GetMarkdownTool(database),
-        GetPagesContentTool(database),
-        FindInMarkdownTool(database),
-        SaveMatplotlibFigTool(output_dir=output_image_path),
+        SearchTool(log_queue=log_queue,),
+        ArxivSearchTool(log_queue=log_queue,),
+        ScientificSearchTool(log_queue=log_queue,),
+        GetTableOfContentsTool(log_queue=log_queue, database=database),
+        GetMarkdownTool(log_queue=log_queue, database=database),
+        GetPagesContentTool(log_queue=log_queue, database=database),
+        FindInMarkdownTool(log_queue=log_queue, database=database),
+        SaveMatplotlibFigTool(log_queue=log_queue,output_dir=output_image_path),
     ]
 
     search_agent = CodeAgent(
@@ -138,7 +139,7 @@ def create_main_search_agent(
     return search_agent
 
 
-def main_search(task: str):
+def main_search(task: str, log_queue: queue.Queue | None = None):
     MAIN_PROMPT = """
 You are DeepDraft, an advanced research and analysis agent specialized in deep technical research, data visualization, and comprehensive information synthesis. You have access to powerful tools for web search, document analysis, and data visualization.
 
@@ -164,7 +165,7 @@ Failure or 'I cannot answer' or 'None found' will not be tolerated, success will
 Run verification steps if that's needed, you must make sure you find the correct answer! Here is the task:
 {task}
 """
-    agent = create_main_search_agent(model_id="mistral/mistral-medium-latest")
+    agent = create_main_search_agent(model_id="mistral/mistral-medium-latest", log_queue=log_queue)
     answer = agent.run(MAIN_PROMPT.format(task=task))
     return answer
 

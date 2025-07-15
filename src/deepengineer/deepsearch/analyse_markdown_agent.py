@@ -5,7 +5,7 @@ Simple agent to analyse a markdown, just to test some ideas.
 from enum import Enum
 
 from mistralai import OCRResponse
-from smolagents import CodeAgent, LiteLLMModel, Tool
+from smolagents import CodeAgent, LiteLLMModel
 
 from deepengineer.webcrawler.pdf_utils import (
     convert_ocr_response_to_markdown,
@@ -13,6 +13,7 @@ from deepengineer.webcrawler.pdf_utils import (
     get_markdown_by_page_numbers,
     get_table_of_contents_per_page_markdown,
 )
+from deepengineer.logging_tools import LoggingTool
 
 
 class ToolNames(Enum):
@@ -22,7 +23,7 @@ class ToolNames(Enum):
     FIND_IN_MARKDOWN = "find_in_markdown"
 
 
-class GetTableOfContentsTool(Tool):
+class GetTableOfContentsTool(LoggingTool):
     name = ToolNames.GET_TABLE_OF_CONTENTS.value
     description = "Returns all of the titles in the document along with the page number they are on."
     inputs = {}
@@ -39,7 +40,7 @@ class GetTableOfContentsTool(Tool):
         return self.table_of_contents
 
 
-class GetMarkdownTool(Tool):
+class GetMarkdownTool(LoggingTool):
     name = ToolNames.GET_MARKDOWN.value
     description = f"Returns the markdown entire content of the document. Beware this might be too long to be useful, except for small documents, use {ToolNames.GET_PAGES_CONTENT.value} instead. You can use {ToolNames.GET_TABLE_OF_CONTENTS.value} to get the table of contents of the document including the number of pages."
     inputs = {}
@@ -54,7 +55,7 @@ class GetMarkdownTool(Tool):
         return self.markdown_content
 
 
-class GetPagesContentTool(Tool):
+class GetPagesContentTool(LoggingTool):
     name = ToolNames.GET_PAGES_CONTENT.value
     description = f"Returns the content of the pages. You can use {ToolNames.GET_TABLE_OF_CONTENTS.value} to get the table of contents of the document including the number of pages. Expects a list of page numbers as integers as input."
     inputs = {
@@ -73,7 +74,7 @@ class GetPagesContentTool(Tool):
         return get_markdown_by_page_numbers(self.markdown, page_numbers)
 
 
-class FindInMarkdownTool(Tool):
+class FindInMarkdownTool(LoggingTool):
     name = ToolNames.FIND_IN_MARKDOWN.value
     description = f"Finds the page numbers of the document that contain the search queries. If you are looking for a specific information, you can use this tool to find the page numbers of the document that contain the information and then use {ToolNames.GET_PAGES_CONTENT.value} to get the content of the pages."
     inputs = {
