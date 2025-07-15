@@ -5,11 +5,12 @@ import threading, time, queue, logging
 
     
 class _BaseTool:
-    def __init__(self, log_queue: queue.Queue):
+    def __init__(self, log_queue: queue.Queue | None = None):
         self.log_queue = log_queue
 
     def push_log(self, msg: str):
-        self.log_queue.put(msg)
+        if self.log_queue:
+            self.log_queue.put(msg)
 
     def forward(self, input: str) -> str:
         raise NotImplementedError("Subclasses must implement forward method")
@@ -90,6 +91,7 @@ with gr.Blocks() as demo:
         fn=run_agent_stream,
         inputs=[user_input],
         outputs=[agent_output, log_output],
+        concurrency_limit=4,
     )
 
 if __name__ == "__main__":
