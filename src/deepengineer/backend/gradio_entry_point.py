@@ -6,12 +6,25 @@ from smolagents import Tool
 from deepengineer.deepsearch.main_agent import main_search
 import time
 
+class SearchTool:
+    
+    def forward(self, input: str) -> str:
+        time.sleep(1)
+        #yield (f"Searching for {input}", None)
+        return f"Found {input}"
+
+class DrawTool:
+    def forward(self, input: str) -> str:
+        time.sleep(1)
+        #yield (f"Drawing {input}", None)
+        return f"Drawing {input}"
+
 # Streaming runner
 def run_agent(user_input):
-    for i in range(5):
-        yield (f"{i}", None)
-        time.sleep(1)
-    yield (None, f"Final answer: {user_input}")
+    search_tool = SearchTool()
+    draw_tool = DrawTool()
+    final_answer = search_tool.forward(user_input) + draw_tool.forward(user_input)
+    return final_answer
 
 # Build Gradio interface
 with gr.Blocks() as demo:
