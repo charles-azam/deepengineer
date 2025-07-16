@@ -14,7 +14,6 @@ def load_mock_ocr_response() -> OCRResponse:
     with open(DATA_DIR / "report_thermal_neutron.json") as f:
         return OCRResponse.model_validate_json(f.read())
 
-
 def test_pdf_agent():
     ocr_response = load_mock_ocr_response()
     pdf_agent = create_agent(ocr_response)
@@ -28,7 +27,7 @@ def test_pdf_agent():
     GetPagesContentTool(ocr_response).forward([1, 2, 3])
     FindInMarkdownTool(ocr_response).forward(["thermal neutron", "neutron"])
 
-
+@pytest.mark.expensive
 def test_run_pdf_agent():
     ocr_response = load_mock_ocr_response()
     pdf_agent = create_agent(ocr_response)

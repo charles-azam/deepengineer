@@ -20,6 +20,7 @@ def test_draw_image_agent():
     assert output_path.exists()
 
 
+@pytest.mark.expensive
 def test_save_matplotlib_fig_tool():
     model = LiteLLMModel(model_id="mistral/mistral-medium-latest")
     agent = CodeAgent(

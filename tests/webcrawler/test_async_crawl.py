@@ -8,12 +8,12 @@ from deepengineer.webcrawler.async_crawl import (
 from deepengineer.webcrawler.testing import ARXIV_URL, URL_PDF, URL_WIKIPEDIA
 
 
+@pytest.mark.playwright
 @pytest.mark.asyncio
 async def test_crawl4ai_extract_markdown_of_url_async():
     markdown = await crawl4ai_extract_markdown_of_url_async(URL_WIKIPEDIA)
     assert isinstance(markdown, str)
     assert "Graphite-moderated reactor" in markdown
-
 
 @pytest.mark.asyncio
 async def test_download_pdf_async():
