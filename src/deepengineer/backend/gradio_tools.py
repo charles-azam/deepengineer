@@ -10,45 +10,20 @@ from deepengineer.common_path import DATA_DIR
 
 def parse_markdown_images(markdown_text: str, image_dir: Path) -> str:
     """
-    Parse markdown text and convert image references to absolute file paths
-    that Gradio can display.
-    
-    Args:
-        markdown_text: The markdown text containing image references
-        image_dir: The directory containing the generated images
-    
-    Returns:
-        Modified markdown text with absolute file paths for images
+    Replace image references ![Title](image_name.png) with ![Title](image_dir/image_name.png)
     """
     if not markdown_text or not image_dir:
         return markdown_text
-    
-    # Pattern to match markdown image syntax: ![alt text](image_path)
+
     image_pattern = r'!\[([^\]]*)\]\(([^)]+)\)'
-    
+
     def replace_image_path(match):
         alt_text = match.group(1)
-        image_path = match.group(2)
-        
-        # If the path is already absolute, return as is
-        if Path(image_path).is_absolute():
-            return f'![{alt_text}]({image_path})'
-        
-        # If it's a relative path, try to find it in the image directory
-        if image_dir.exists():
-            # Look for the image file in the image directory
-            for img_file in image_dir.glob('*'):
-                if img_file.name == Path(image_path).name:
-                    return f'![{alt_text}]({img_file.absolute()})'
-            
-            # If not found by name, try to find any image file
-            image_files = list(image_dir.glob('*.png')) + list(image_dir.glob('*.jpg')) + list(image_dir.glob('*.jpeg'))
-            if image_files:
-                return f'![{alt_text}]({image_files[0].absolute()})'
-        
-        # If no image found, return the original reference
-        return match.group(0)
-    
+        image_name = match.group(2)
+        # Always use image_dir/image_name
+        new_path = str(Path(image_dir) / image_name)
+        return f'![{alt_text}]({new_path})'
+
     return re.sub(image_pattern, replace_image_path, markdown_text)
 
 
@@ -98,6 +73,10 @@ def run_agent_stream(user_input: str):
     
     if final_answer and image_dir:
         final_answer = parse_markdown_images(final_answer, image_dir)
+        
+    final_answer = final_answer.replace("```python", "")
+    final_answer = final_answer.replace("```markdown", "")
+    final_answer = final_answer.replace("```", "")
 
     # final yield: agent_output filled with processed markdown, log_output frozen
     yield (final_answer, log_buffer.rstrip())

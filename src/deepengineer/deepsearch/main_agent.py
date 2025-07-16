@@ -18,8 +18,8 @@ from pathlib import Path
 import queue
 
 
-def create_output_image_path():
-    random_name_images = random.randint(1000000, 9999999)
+def create_output_image_path(random_name_images: int | None = None):
+    random_name_images = random_name_images or random.randint(1000000, 9999999)
     output_image_path = Path(DATA_DIR) / f"images_{random_name_images}"
     output_image_path.mkdir(parents=True, exist_ok=True)
     return output_image_path
