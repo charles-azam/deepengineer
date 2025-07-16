@@ -16,6 +16,8 @@ from smolagents import CodeAgent, LiteLLMModel
 import random
 from pathlib import Path
 import queue
+import json
+import datetime
 
 
 def create_output_image_path(random_name_images: int | None = None):
@@ -23,6 +25,30 @@ def create_output_image_path(random_name_images: int | None = None):
     output_image_path = Path(DATA_DIR) / f"images_{random_name_images}"
     output_image_path.mkdir(parents=True, exist_ok=True)
     return output_image_path
+
+
+def save_log(task: str, answer: str, model_id: str, success: bool = True, error: str = None):
+    """Simple function to save request logs with timestamps."""
+    logs_dir = Path(DATA_DIR) / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = logs_dir / f"request_{timestamp}.json"
+    
+    log_data = {
+        "timestamp": datetime.datetime.now().isoformat(),
+        "task": task,
+        "model_id": model_id,
+        "success": success,
+        "answer": answer,
+        "error": error
+    }
+    
+    try:
+        with open(log_file, 'w', encoding='utf-8') as f:
+            json.dump(log_data, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"Failed to save log: {e}")
 
 
 def create_main_search_agent(
@@ -114,9 +140,14 @@ Run verification steps if that's needed, you must make sure you find the correct
         log_queue=log_queue,
         output_image_path=output_image_path,
     )
-    answer = agent.run(MAIN_PROMPT.format(task=task))
-
-    return answer, output_image_path
+    
+    try:
+        answer = agent.run(MAIN_PROMPT.format(task=task))
+        save_log(task, answer, model_id, success=True)
+        return answer, output_image_path
+    except Exception as e:
+        save_log(task, "", model_id, success=False, error=str(e))
+        raise e
 
 
 if __name__ == "__main__":
