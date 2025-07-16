@@ -1,10 +1,12 @@
 ---
 title: deepdraft
-emoji: 🚀
+emoji: 🔬
 colorFrom: blue
-colorTo: pink
-sdk: docker
-pinned: false
+colorTo: purple
+sdk: gradio
+sdk_version: 5.37.0
+app_file: gradio_app.py
+pinned: true
 ---
 
 # DeepEngineer 🔬
