@@ -15,14 +15,14 @@ def parse_markdown_images(markdown_text: str, image_dir: Path) -> str:
     if not markdown_text or not image_dir:
         return markdown_text
 
-    image_pattern = r'!\[([^\]]*)\]\(([^)]+)\)'
+    image_pattern = r"!\[([^\]]*)\]\(([^)]+)\)"
 
     def replace_image_path(match):
         alt_text = match.group(1)
         image_name = match.group(2)
         # Always use image_dir/image_name
-        new_path = "gradio_api/file="+str(Path(image_dir) / image_name)
-        return f'![{alt_text}]({new_path})'
+        new_path = "gradio_api/file=" + str(Path(image_dir) / image_name)
+        return f"![{alt_text}]({new_path})"
 
     return re.sub(image_pattern, replace_image_path, markdown_text)
 
@@ -37,7 +37,7 @@ def run_agent_stream(user_input: str):
     Yields tuples: (agent_output, log_output)
     """
     log_queue = queue.Queue()
-    
+
     # empty queue before each run
     while not log_queue.empty():
         print("Emptying log queue")
@@ -47,7 +47,9 @@ def run_agent_stream(user_input: str):
     done = threading.Event()
 
     def _worker():
-        answer_container["text"], answer_container["image_dir"] = main_search(user_input, log_queue)
+        answer_container["text"], answer_container["image_dir"] = main_search(
+            user_input, log_queue
+        )
         done.set()
 
     threading.Thread(target=_worker, daemon=True).start()
@@ -70,10 +72,10 @@ def run_agent_stream(user_input: str):
     # Process the final answer to include images
     final_answer = answer_container["text"]
     image_dir = answer_container["image_dir"]
-    
+
     if final_answer and image_dir:
         final_answer = parse_markdown_images(final_answer, image_dir)
-        
+
     final_answer = final_answer.replace("```python", "")
     final_answer = final_answer.replace("```markdown", "")
     final_answer = final_answer.replace("```", "")

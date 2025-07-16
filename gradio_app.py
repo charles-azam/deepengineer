@@ -4,12 +4,12 @@ from deepengineer.common_path import DATA_DIR
 
 with gr.Blocks() as demo:
     gr.Markdown("# Agent Interface with Real‑Time Tool Logging")
-    user_input  = gr.Textbox(label="User Message")
-    
+    user_input = gr.Textbox(label="User Message")
+
     log_output = gr.Textbox(label="Tool Invocation Log", interactive=False)
-    
+
     agent_output = gr.Markdown(
-        label="Agent Response", 
+        label="Agent Response",
     )
 
     send = gr.Button("Send")

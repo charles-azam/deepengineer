@@ -1,4 +1,5 @@
 """work in progress"""
+
 from pathlib import Path
 import random
 from smolagents import CodeAgent, LiteLLMModel
@@ -7,10 +8,12 @@ from deepengineer.deepsearch.scawl_web_agent import create_web_search_agent
 from deepengineer.deepsearch.draw_agent import SaveMatplotlibFigTool
 from deepengineer.common_path import DATA_DIR
 
+
 def _create_output_image_path(image_folder_suffix: int | None = None):
     output_image_path = Path(DATA_DIR) / f"images_{image_folder_suffix}"
     output_image_path.mkdir(parents=True, exist_ok=True)
     return output_image_path
+
 
 def create_main_deep_search_agent(
     main_model_id="deepseek/deepseek-reasoner",
@@ -25,10 +28,11 @@ def create_main_deep_search_agent(
     web_search_agent = create_web_search_agent(
         model_id=web_search_model_id, database=database
     )
-    
-    
+
     image_folder_suffix = random.randint(1000000, 9999999)
-    output_image_path = _create_output_image_path(image_folder_suffix=image_folder_suffix)
+    output_image_path = _create_output_image_path(
+        image_folder_suffix=image_folder_suffix
+    )
 
     manager_agent = CodeAgent(
         model=main_model,
