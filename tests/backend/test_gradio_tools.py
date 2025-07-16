@@ -72,4 +72,3 @@ def test_parse_markdown_images():
     assert real_image_path.exists()
     parsed_markdown = parse_markdown_images(markdown, image_dir)
     assert output_image_path in parsed_markdown
-    

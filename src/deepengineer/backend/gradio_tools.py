@@ -21,7 +21,7 @@ def parse_markdown_images(markdown_text: str, image_dir: Path) -> str:
         alt_text = match.group(1)
         image_name = match.group(2)
         # Always use image_dir/image_name
-        new_path = str(Path(image_dir) / image_name)
+        new_path = "gradio_api/file="+str(Path(image_dir) / image_name)
         return f'![{alt_text}]({new_path})'
 
     return re.sub(image_pattern, replace_image_path, markdown_text)
