@@ -1,0 +1,9 @@
+{
+  "timestamp": "2025-07-16T22:57:33.123885",
+  "task": "Test task",
+  "model_id": "test-model",
+  "success": true,
+  "output_image_path": "/test/output",
+  "answer": "Test answer",
+  "error_message": null
+}
