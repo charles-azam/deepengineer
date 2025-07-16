@@ -25,7 +25,7 @@ def run_agent_stream(user_input: str):
     done = threading.Event()
 
     def _worker():
-        answer_container["text"] = main_search(user_input, log_queue)
+        answer_container["text"], output_image_path = main_search(user_input, log_queue)
         done.set()
 
     threading.Thread(target=_worker, daemon=True).start()
