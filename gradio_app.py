@@ -85,11 +85,11 @@ custom_css = """
 }
 
 .spinner {
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #3498db;
+    border: 0.1875rem solid #f3f3f3;
+    border-top: 0.1875rem solid #3498db;
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
+    width: 1.25rem;
+    height: 1.25rem;
     animation: spin 1s linear infinite;
     margin-right: 0.5rem;
 }
@@ -112,18 +112,18 @@ custom_css = """
     color: white !important;
     border: none !important;
     padding: 0.5rem 1.5rem !important;
-    border-radius: 8px !important;
+    border-radius: 0.5rem !important;
     font-weight: 600 !important;
     font-size: 0.95rem !important;
     transition: all 0.3s ease !important;
-    box-shadow: 0 2px 8px rgba(0,123,255,0.3) !important;
-    min-width: 120px !important;
-    max-width: 200px !important;
+    box-shadow: 0 0.125rem 0.5rem rgba(0,123,255,0.3) !important;
+    min-width: 7.5rem !important;
+    max-width: 12.5rem !important;
 }
 
 .send-button:hover {
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(0,123,255,0.4) !important;
+    transform: translateY(-0.0625rem) !important;
+    box-shadow: 0 0.25rem 0.75rem rgba(0,123,255,0.4) !important;
 }
 
 .send-button:disabled {
@@ -138,10 +138,10 @@ custom_css = """
     line-height: 1.4;
     color: var(--body-text-color);
     background: var(--background-fill-secondary);
-    border: 1px solid var(--border-color-primary);
-    border-radius: 5px;
+    border: 0.0625rem solid var(--border-color-primary);
+    border-radius: 0.3125rem;
     padding: 1rem;
-    max-height: 300px;
+    max-height: 18.75rem;
     overflow-y: auto;
 }
 
@@ -213,6 +213,34 @@ custom_css = """
 .dark .tool-description {
     color: var(--body-text-color);
 }
+
+.model-selector-compact {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin-bottom: 0.5rem;
+}
+
+.model-selector-compact .gr-dropdown {
+    background: var(--background-fill-primary);
+    color: var(--body-text-color);
+    border: 0.0625rem solid var(--border-color-primary);
+    border-radius: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+    max-width: 12.5rem !important;
+}
+
+.model-selector-compact .gr-dropdown:hover {
+    background: var(--background-fill-secondary);
+    border-color: var(--border-color-accent);
+}
+
+.model-selector-compact .gr-dropdown .gr-dropdown-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
 """
 
 def format_log_entry(log_text):
@@ -240,7 +268,7 @@ def format_log_entry(log_text):
     
     return "".join(formatted_lines)
 
-def run_agent_with_ui(user_input: str):
+def run_agent_with_ui(user_input: str, model_id: str):
     """Enhanced agent runner with better UI feedback"""
     if not user_input.strip():
         return "", ""
@@ -250,7 +278,7 @@ def run_agent_with_ui(user_input: str):
     agent_output = ""
     
     # Stream from the agent
-    for agent_result, log_result in run_agent_stream(user_input):
+    for agent_result, log_result in run_agent_stream(user_input, model_id):
         if log_result:
             log_buffer = log_result
         if agent_result:
@@ -273,6 +301,23 @@ with gr.Blocks(css=custom_css, title="DeepDraft - Hardware Engineering Assistant
                 <p>Powered by AI-driven analysis and visualization</p>
             </div>
         """)
+    
+    # Model selection (compact)
+    with gr.Row():
+        with gr.Column(scale=1):
+            model_selector = gr.Dropdown(
+                choices=[
+                    ("🤖 Mistral Medium", "mistral/mistral-medium-latest"),
+                    ("🧠 DeepSeek Reasoner", "deepseek/deepseek-reasoner"),
+                    ("🚀 DeepSeek Chat", "deepseek/deepseek-chat"),
+                    ("⚡ Mistral Small", "mistral/mistral-small-latest"),
+                ],
+                value="mistral/mistral-medium-latest",
+                label="🤖 AI Model",
+                info="Choose the AI model for analysis",
+                elem_classes=["model-selector-compact"],
+                scale=1
+            )
     
     # Main input section
     with gr.Row():
@@ -331,7 +376,7 @@ with gr.Blocks(css=custom_css, title="DeepDraft - Hardware Engineering Assistant
             )
     
     # Event handlers
-    def on_send_click(user_input):
+    def on_send_click(user_input, model_id):
         if not user_input.strip():
             return "", "", gr.HTML(visible=False)
         
@@ -351,11 +396,11 @@ with gr.Blocks(css=custom_css, title="DeepDraft - Hardware Engineering Assistant
     # Connect the button click
     send_button.click(
         fn=on_send_click,
-        inputs=[user_input],
+        inputs=[user_input, model_selector],
         outputs=[agent_output, log_output, processing_indicator]
     ).then(
         fn=run_agent_with_ui,
-        inputs=[user_input],
+        inputs=[user_input, model_selector],
         outputs=[agent_output, log_output],
         concurrency_limit=1
     ).then(
