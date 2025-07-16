@@ -27,7 +27,7 @@ def parse_markdown_images(markdown_text: str, image_dir: Path) -> str:
     return re.sub(image_pattern, replace_image_path, markdown_text)
 
 
-def run_agent_stream(user_input: str):
+def run_agent_stream(user_input: str, model_id: str = "mistral/mistral-medium-latest"):
     """
     Generator wired to Gradio:
       – starts the agent in a background thread
@@ -48,7 +48,7 @@ def run_agent_stream(user_input: str):
 
     def _worker():
         answer_container["text"], answer_container["image_dir"] = main_search(
-            user_input, log_queue
+            user_input, log_queue, model_id
         )
         done.set()
 

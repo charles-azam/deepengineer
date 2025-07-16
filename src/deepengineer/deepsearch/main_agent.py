@@ -77,7 +77,8 @@ def create_main_search_agent(
     return search_agent
 
 
-def main_search(task: str, log_queue: queue.Queue | None = None) -> tuple[str, Path]:
+def main_search(task: str, log_queue: queue.Queue | None = None, model_id: str = "mistral/mistral-medium-latest") -> tuple[str, Path]:
+    print(f"Using model: {model_id}")
     output_image_path = create_output_image_path()
     MAIN_PROMPT = """
 You are DeepDraft, an advanced research and analysis agent specialized in deep technical research, data visualization, and comprehensive information synthesis. You have access to powerful tools for web search, document analysis, and data visualization.
@@ -109,7 +110,7 @@ Run verification steps if that's needed, you must make sure you find the correct
 {task}
 """
     agent = create_main_search_agent(
-        model_id="mistral/mistral-medium-latest",
+        model_id=model_id,
         log_queue=log_queue,
         output_image_path=output_image_path,
     )
