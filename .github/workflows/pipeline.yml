@@ -2,8 +2,6 @@ name: Python CI
 
 on:
   push:
-    branches:
-      - main # only on main branch, I am paying for this!
 
 jobs:
   test:
