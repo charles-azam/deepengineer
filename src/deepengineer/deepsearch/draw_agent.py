@@ -14,6 +14,7 @@ from smolagents import CodeAgent, LiteLLMModel
 from smolagents.agents import ActionStep
 from deepengineer.webcrawler.crawl_database import DataBase
 from deepengineer.logging_tools import LoggingTool
+import queue
 
 
 def _find_and_save_matplotlib_figure(image_path: Path = Path("figure.png")) -> str:
@@ -40,11 +41,12 @@ class SaveMatplotlibFigTool(LoggingTool):
     }
     output_type = "string"
 
-    def __init__(self, output_dir: Path):
-        super().__init__()
+    def __init__(self, output_dir: Path, log_queue: queue.Queue | None = None):
+        super().__init__(log_queue=log_queue)
         self.output_dir: Path = output_dir
 
     def forward(self, image_name: str) -> str:
+        self.push_log(f"🖼️ Saving matplotlib figure to {image_name}")
         if not image_name.endswith(".png"):
             image_name = image_name + ".png"
         output_path = self.output_dir / image_name
@@ -173,6 +175,7 @@ class DrawImageTool(LoggingTool):
         self.output_dir: Path = output_dir
 
     def forward(self, prompt: str, image_name: str) -> str:
+        self.push_log(f"🖊️ Drawing image from prompt: {prompt}")
         if not image_name.endswith(".png"):
             image_name = image_name + ".png"
         output_path = draw_matplotlib_image_from_prompt(

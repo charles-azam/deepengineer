@@ -18,7 +18,7 @@ from deepengineer.webcrawler.pdf_utils import (
     get_table_of_contents_per_page_markdown,
 )
 from deepengineer.logging_tools import LoggingTool
-
+import queue
 
 class ToolNames(Enum):
     # Search tools
@@ -54,8 +54,12 @@ class SearchTool(LoggingTool):
         },
     }
     output_type = "object"
+    
+    def __init__(self, log_queue: queue.Queue | None = None):
+        super().__init__(log_queue=log_queue)
 
     def forward(self, search_query: str) -> str:
+        self.push_log(f"🔍 Searching web for: {search_query}")
         result = asyncio.run(
             linkup_search_async(
                 search_query=search_query,
@@ -76,8 +80,12 @@ class ArxivSearchTool(LoggingTool):
         }
     }
     output_type = "object"
+    
+    def __init__(self, log_queue: queue.Queue | None = None):
+        super().__init__(log_queue=log_queue)
 
     def forward(self, search_query: str) -> str:
+        self.push_log(f"🔍 Searching arXiv for: {search_query}")
         result = asyncio.run(arxiv_search_async(search_query))
         return filter_search_results(result)
 
@@ -94,8 +102,12 @@ class PubmedSearchTool(LoggingTool):
         }
     }
     output_type = "object"
+    
+    def __init__(self, log_queue: queue.Queue | None = None):
+        super().__init__(log_queue=log_queue)
 
     def forward(self, search_query: str) -> str:
+        self.push_log(f"🔍 Searching PubMed for: {search_query}")
         result = asyncio.run(pubmed_search_async(search_query))
         return filter_search_results(result)
 
@@ -113,7 +125,11 @@ class ScientificSearchTool(LoggingTool):
     }
     output_type = "object"
 
+    def __init__(self, log_queue: queue.Queue | None = None):
+        super().__init__(log_queue=log_queue)
+
     def forward(self, search_query: str) -> dict:
+        self.push_log(f"🔍 Searching scientific domains for: {search_query}")
         result = asyncio.run(scientific_search_async(search_query))
         return filter_search_results(result)
 
@@ -123,7 +139,7 @@ URL_EXPLAINATION = """The URL can be be converted to a markdown. If the URL poin
 
 class GetTableOfContentsTool(LoggingTool):
     name = ToolNames.GET_TABLE_OF_CONTENTS.value
-    description = f"""Returns all of the titles in the document along with the page number they are on.
+    description = f"""Returns all of the titles in the url along with the page number they are on.
     {URL_EXPLAINATION}
     """
     inputs = {
@@ -134,11 +150,12 @@ class GetTableOfContentsTool(LoggingTool):
     }
     output_type = "string"
 
-    def __init__(self, database: DataBase):
-        super().__init__()
+    def __init__(self, database: DataBase, log_queue: queue.Queue | None = None):
+        super().__init__(log_queue=log_queue)
         self.database: DataBase = database
 
     def forward(self, url: str) -> str:
+        self.push_log(f"🔍 Getting table of contents for url: {url}")
         markdown = self.database.get_markdown_of_url(url)
         table_of_contents: str = get_table_of_contents_per_page_markdown(markdown)
         return table_of_contents
@@ -152,11 +169,12 @@ class GetMarkdownTool(LoggingTool):
     }
     output_type = "string"
 
-    def __init__(self, database: DataBase):
-        super().__init__()
+    def __init__(self, database: DataBase, log_queue: queue.Queue | None = None):
+        super().__init__(log_queue=log_queue)
         self.database: DataBase = database
 
     def forward(self, url: str) -> str:
+        self.push_log(f"🔍 Getting markdown for url: {url}")
         markdown = self.database.get_markdown_of_url(url)
         markdown_content: str = convert_ocr_response_to_markdown(markdown)
         return markdown_content
@@ -174,11 +192,12 @@ class GetPagesContentTool(LoggingTool):
     }
     output_type = "string"
 
-    def __init__(self, database: DataBase):
-        super().__init__()
+    def __init__(self, database: DataBase, log_queue: queue.Queue | None = None):
+        super().__init__(log_queue=log_queue)
         self.database: DataBase = database
 
     def forward(self, url: str, page_numbers: list[int]) -> str:
+        self.push_log(f"🔍 Getting content of pages {page_numbers} for url: {url}")
         markdown = self.database.get_markdown_of_url(url)
         return get_markdown_by_page_numbers(markdown, page_numbers)
 
@@ -195,17 +214,18 @@ class FindInMarkdownTool(LoggingTool):
     }
     output_type = "array"
 
-    def __init__(self, database: DataBase):
-        super().__init__()
+    def __init__(self, database: DataBase, log_queue: queue.Queue | None = None):
+        super().__init__(log_queue=log_queue)
         self.database: DataBase = database
 
     def forward(self, url: str, search_queries: list[str]) -> list[int]:
+        self.push_log(f"🔍 Finding {search_queries} in url: {url}")
         markdown = self.database.get_markdown_of_url(url)
         return find_in_markdown(markdown, search_queries)
 
 
 def create_web_search_agent(
-    model_id="deepseek/deepseek-reasoner", database: DataBase | None = None
+    model_id="deepseek/deepseek-reasoner", database: DataBase | None = None, log_queue: queue.Queue | None = None
 ):
     """Create a web search agent with search, crawling, and PDF analysis capabilities."""
 
@@ -215,14 +235,14 @@ def create_web_search_agent(
 
     # Web search and crawling tools
     WEB_SEARCH_TOOLS = [
-        SearchTool(),
-        ArxivSearchTool(),
-        PubmedSearchTool(),
-        ScientificSearchTool(),
-        GetTableOfContentsTool(database),
-        GetMarkdownTool(database),
-        GetPagesContentTool(database),
-        FindInMarkdownTool(database),
+        SearchTool(log_queue=log_queue),
+        ArxivSearchTool(log_queue=log_queue),
+        PubmedSearchTool(log_queue=log_queue),
+        ScientificSearchTool(log_queue=log_queue),
+        GetTableOfContentsTool(database=database, log_queue=log_queue),
+        GetMarkdownTool(database=database, log_queue=log_queue),
+        GetPagesContentTool(database=database, log_queue=log_queue),
+        FindInMarkdownTool(database=database, log_queue=log_queue),
     ]
 
     web_search_agent = CodeAgent(

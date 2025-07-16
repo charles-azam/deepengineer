@@ -1,41 +1,7 @@
 import gradio as gr
-import threading, time, queue, logging
+import threading, time, queue
+from deepengineer.deepsearch.main_agent import main_search
 
-# ---------- 1.  A thread‑safe queue for log messages ----------
-
-    
-class _BaseTool:
-    def __init__(self, log_queue: queue.Queue | None = None):
-        self.log_queue = log_queue
-
-    def push_log(self, msg: str):
-        if self.log_queue:
-            self.log_queue.put(msg)
-
-    def forward(self, input: str) -> str:
-        raise NotImplementedError("Subclasses must implement forward method")
-
-# ---------- 2.  Tools that report progress ----------
-class SearchTool(_BaseTool):
-    def forward(self, query: str) -> str:
-        self.push_log(f"🔍 SearchTool → {query}")
-        time.sleep(2)                      # expensive work…
-        out = f"Found {query}"
-        self.push_log(f"✅ SearchTool done")
-        return out
-
-class DrawTool(_BaseTool):
-    def forward(self, prompt: str) -> str:
-        self.push_log(f"🎨 DrawTool → {prompt}")
-        time.sleep(2)
-        out = f"Drawing {prompt}"
-        self.push_log(f"✅ DrawTool done")
-        return out
-
-# ---------- 3.  Your unchanged agent -------------------------
-def agent(user_input: str, log_queue: queue.Queue) -> str:
-    st, dt = SearchTool(log_queue), DrawTool(log_queue)
-    return st.forward(user_input) + dt.forward(user_input) + st.forward(user_input) + dt.forward(user_input)
 
 # ---------- 4.  Wrapper that streams -------------------------
 def run_agent_stream(user_input: str):
@@ -48,6 +14,7 @@ def run_agent_stream(user_input: str):
     Yields tuples: (agent_output, log_output)
     """
     log_queue = queue.Queue()
+    
     # empty queue before each run
     while not log_queue.empty():
         log_queue.get_nowait()
@@ -56,7 +23,7 @@ def run_agent_stream(user_input: str):
     done = threading.Event()
 
     def _worker():
-        answer_container["text"] = agent(user_input, log_queue)
+        answer_container["text"] = main_search(user_input, log_queue)
         done.set()
 
     threading.Thread(target=_worker, daemon=True).start()
@@ -81,17 +48,17 @@ def run_agent_stream(user_input: str):
 
 # ---------- 5.  Gradio UI ------------------------------------
 with gr.Blocks() as demo:
-    gr.Markdown("## Agent Interface with Real‑Time Tool Logging")
+    gr.Markdown("# Agent Interface with Real‑Time Tool Logging")
     user_input  = gr.Textbox(label="User Message")
-    agent_output = gr.Textbox(label="Agent Response")
-    log_output   = gr.Textbox(label="Tool Invocation Log", interactive=False)
+    agent_output = gr.Markdown(label="Agent Response")
+    log_output = gr.Textbox(label="Tool Invocation Log", interactive=False)
 
     send = gr.Button("Send")
     send.click(
         fn=run_agent_stream,
         inputs=[user_input],
-        outputs=[agent_output, log_output],
-        concurrency_limit=4,
+        outputs=[log_output, agent_output],
+        concurrency_limit=2,
     )
 
 if __name__ == "__main__":

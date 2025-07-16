@@ -1,6 +1,6 @@
 import pytest
 from deepengineer.common_path import DATA_DIR
-from deepengineer.deepsearch.analyse_markdown_agent import (
+from deepengineer.deepsearch.main_pdf_agent import (
     FindInMarkdownTool,
     GetMarkdownTool,
     GetPagesContentTool,
