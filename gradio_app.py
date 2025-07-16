@@ -268,7 +268,7 @@ with gr.Blocks(css=custom_css, title="DeepDraft - Hardware Engineering Assistant
     with gr.Row():
         gr.HTML("""
             <div class="main-header">
-                <h1>🔧 DeepEngineer</h1>
+                <h1>🔧 DeepDraft</h1>
                 <p>Advanced Hardware Engineering Assistant</p>
                 <p>Powered by AI-driven analysis and visualization</p>
             </div>
@@ -295,7 +295,7 @@ with gr.Blocks(css=custom_css, title="DeepDraft - Hardware Engineering Assistant
         """
         <div class="processing-indicator" style="display: none;">
             <div class="spinner"></div>
-            <strong>DeepEngineer is analyzing your request...</strong>
+            <strong>DeepDraft is analyzing your request...</strong>
         </div>
         """,
         visible=False
@@ -339,7 +339,7 @@ with gr.Blocks(css=custom_css, title="DeepDraft - Hardware Engineering Assistant
         processing_html = """
         <div class="processing-indicator">
             <div class="spinner"></div>
-            <strong>DeepEngineer is analyzing your request...</strong>
+            <strong>DeepDraft is analyzing your request...</strong>
         </div>
         """
         return "", "", gr.HTML(processing_html, visible=True)
