@@ -4,7 +4,9 @@ from deepengineer.backend.gradio_tools import run_agent_stream
 with gr.Blocks() as demo:
     gr.Markdown("# Agent Interface with Real‑Time Tool Logging")
     user_input  = gr.Textbox(label="User Message")
-    agent_output = gr.Markdown(label="Agent Response")
+    agent_output = gr.Markdown(
+        label="Agent Response", 
+    )
     log_output = gr.Textbox(label="Tool Invocation Log", interactive=False)
 
     send = gr.Button("Send")
