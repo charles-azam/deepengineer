@@ -15,6 +15,6 @@ def test_main_agent():
     main_search(
         task="""
     Search a paper called "High Energy Physics Opportunities Using Reactor Antineutrinos" on arXiv, download it and extract the table of contents
-    """, log_queue=log_queue
+    """,
+        log_queue=log_queue,
     )
-

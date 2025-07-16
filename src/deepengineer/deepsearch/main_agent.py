@@ -25,9 +25,11 @@ def create_output_image_path(random_name_images: int | None = None):
     return output_image_path
 
 
-
 def create_main_search_agent(
-    model_id="deepseek/deepseek-reasoner", database: DataBase | None = None, log_queue: queue.Queue | None = None, output_image_path: Path | None = None,
+    model_id="deepseek/deepseek-reasoner",
+    database: DataBase | None = None,
+    log_queue: queue.Queue | None = None,
+    output_image_path: Path | None = None,
 ):
     """
     Simple agent that can search the web and answer the question. This is much faster and better for simple questions that do not require deep research.
@@ -36,20 +38,26 @@ def create_main_search_agent(
     model = LiteLLMModel(model_id=model_id)
     if database is None:
         database = DataBase()
-        
+
     output_image_path = output_image_path or DATA_DIR / "images"
     output_image_path.mkdir(parents=True, exist_ok=True)
 
     # Web search and crawling tools
     WEB_SEARCH_TOOLS = [
-        SearchTool(log_queue=log_queue,),
-        ArxivSearchTool(log_queue=log_queue,),
-        ScientificSearchTool(log_queue=log_queue,),
+        SearchTool(
+            log_queue=log_queue,
+        ),
+        ArxivSearchTool(
+            log_queue=log_queue,
+        ),
+        ScientificSearchTool(
+            log_queue=log_queue,
+        ),
         GetTableOfContentsTool(log_queue=log_queue, database=database),
         GetMarkdownTool(log_queue=log_queue, database=database),
         GetPagesContentTool(log_queue=log_queue, database=database),
         FindInMarkdownTool(log_queue=log_queue, database=database),
-        SaveMatplotlibFigTool(log_queue=log_queue,output_dir=output_image_path),
+        SaveMatplotlibFigTool(log_queue=log_queue, output_dir=output_image_path),
     ]
 
     search_agent = CodeAgent(
@@ -100,9 +108,13 @@ Failure or 'I cannot answer' or 'None found' will not be tolerated, success will
 Run verification steps if that's needed, you must make sure you find the correct answer! Here is the task:
 {task}
 """
-    agent = create_main_search_agent(model_id="mistral/mistral-medium-latest", log_queue=log_queue, output_image_path=output_image_path)
+    agent = create_main_search_agent(
+        model_id="mistral/mistral-medium-latest",
+        log_queue=log_queue,
+        output_image_path=output_image_path,
+    )
     answer = agent.run(MAIN_PROMPT.format(task=task))
-    
+
     return answer, output_image_path
 
 

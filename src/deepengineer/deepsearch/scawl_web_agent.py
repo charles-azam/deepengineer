@@ -20,6 +20,7 @@ from deepengineer.webcrawler.pdf_utils import (
 from deepengineer.logging_tools import LoggingTool
 import queue
 
+
 class ToolNames(Enum):
     # Search tools
     SEARCH_TOOL = "web_search_tool"
@@ -54,7 +55,7 @@ class SearchTool(LoggingTool):
         },
     }
     output_type = "object"
-    
+
     def __init__(self, log_queue: queue.Queue | None = None):
         super().__init__(log_queue=log_queue)
 
@@ -80,7 +81,7 @@ class ArxivSearchTool(LoggingTool):
         }
     }
     output_type = "object"
-    
+
     def __init__(self, log_queue: queue.Queue | None = None):
         super().__init__(log_queue=log_queue)
 
@@ -102,7 +103,7 @@ class PubmedSearchTool(LoggingTool):
         }
     }
     output_type = "object"
-    
+
     def __init__(self, log_queue: queue.Queue | None = None):
         super().__init__(log_queue=log_queue)
 
@@ -225,7 +226,9 @@ class FindInMarkdownTool(LoggingTool):
 
 
 def create_web_search_agent(
-    model_id="deepseek/deepseek-reasoner", database: DataBase | None = None, log_queue: queue.Queue | None = None
+    model_id="deepseek/deepseek-reasoner",
+    database: DataBase | None = None,
+    log_queue: queue.Queue | None = None,
 ):
     """Create a web search agent with search, crawling, and PDF analysis capabilities."""
 

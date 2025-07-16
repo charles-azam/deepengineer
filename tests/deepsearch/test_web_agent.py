@@ -15,4 +15,3 @@ def test_run_web_search_agent():
         )
         is not None
     )
-
