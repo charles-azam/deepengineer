@@ -307,12 +307,12 @@ with gr.Blocks(css=custom_css, title="DeepDraft - Hardware Engineering Assistant
         with gr.Column(scale=1):
             model_selector = gr.Dropdown(
                 choices=[
-                    ("🧠 DeepSeek Reasoner", "deepseek/deepseek-reasoner"),
                     ("🤖 Mistral Medium", "mistral/mistral-medium-latest"),
+                    ("🧠 DeepSeek Reasoner", "deepseek/deepseek-reasoner"),
                     ("🚀 DeepSeek Chat", "deepseek/deepseek-chat"),
                     ("⚡ Mistral Small", "mistral/mistral-small-latest"),
                 ],
-                value="deepseek/deepseek-reasoner",
+                value="mistral/mistral-medium-latest",
                 label="🤖 AI Model",
                 info="Choose the AI model for analysis",
                 elem_classes=["model-selector-compact"],
