@@ -70,7 +70,7 @@ def run_agent_stream(user_input: str, model_id: str = "mistral/mistral-medium-la
         log_buffer += log_line + "\n"
 
     # Process the final answer to include images
-    final_answer = answer_container["text"]
+    final_answer = answer_container["text"] or "Something went wrong"
     image_dir = answer_container["image_dir"]
 
     if final_answer and image_dir:
