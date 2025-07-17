@@ -402,7 +402,7 @@ with gr.Blocks(css=custom_css, title="DeepDraft - Hardware Engineering Assistant
         fn=run_agent_with_ui,
         inputs=[user_input, model_selector],
         outputs=[agent_output, log_output],
-        concurrency_limit=1
+        concurrency_limit=10
     ).then(
         fn=on_generate_complete,
         inputs=[agent_output, log_output],
